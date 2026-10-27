@@ -1,0 +1,816 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interactive Lesson Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Oswald:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root {
+    --bg:#2b2b29; --side:#252523; --panel:#33332f; --panel2:#3a3a36; --line:#4a4a46; --ink:#ecebe6; --dim:#a9a79f; --faint:#7d7b74;
+    --green:#8fc79a; --red:#e58a7b; --blue:#8fb3e5; --amber:#e8c36a; --violet:#d59be0; --teal:#7fc4c0;
+    --hl-imp:#e8c36a55; --hl-q:#8fc79a55; --hl-rev:#e8a06a55; --hl-con:#7fc4c055;
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:17px; }
+  body { display:flex; overflow:hidden; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  .mono { font-family:"JetBrains Mono", monospace; } .osw { font-family:"Oswald", sans-serif; }
+  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .dim { color:var(--dim); }
+
+  /* ---------- left nav (Ambition shell) ---------- */
+  #nav { width:170px; flex:none; background:var(--side); border-right:1px solid #333; padding:18px 14px; display:flex; flex-direction:column; gap:4px; }
+  #nav .logo { font-family:"Oswald"; font-size:20px; margin:0 0 18px 6px; letter-spacing:.04em; }
+  #nav a { display:block; padding:7px 8px; border-radius:6px; color:var(--dim); text-decoration:none; font-size:16px; }
+  #nav a.on { color:var(--ink); background:#2f2f2c; }
+  #nav .xp { margin-top:auto; font-size:13px; color:var(--dim); border-top:1px solid #333; padding-top:10px; }
+
+  /* ---------- Waymond side chat ---------- */
+  #chat { width:350px; flex:none; background:var(--side); border-right:1px solid #333; display:flex; flex-direction:column; }
+  #chat .head { margin:12px; padding:8px 12px; border-radius:8px; background:#2f3a2c; border:1px solid #3d4a38; font-size:14px; }
+  #chat .head small { display:block; font-family:"Oswald"; color:#9fc28f; font-size:11px; letter-spacing:.1em; }
+  #msgs { flex:1; overflow-y:auto; padding:6px 16px; }
+  .m { margin:10px 0; line-height:1.4; font-size:16px; }
+  .m.you { margin-left:40px; background:#34342f; padding:8px 12px; border-radius:10px; }
+  .m.w { }
+  .m .quote { display:block; border-left:3px solid var(--amber); padding-left:8px; color:var(--dim); font-style:italic; margin-bottom:4px; font-size:15px; }
+  .m .tag { font-family:"JetBrains Mono"; font-size:11px; color:var(--faint); display:block; margin-top:4px; }
+  .typing { color:var(--faint); font-style:italic; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+  .chip { font-size:13px; padding:4px 10px; border:1px solid var(--line); border-radius:14px; color:var(--dim); }
+  .chip:hover { border-color:var(--amber); color:var(--amber); }
+  #ctx { margin:0 12px 6px; font-size:13px; color:var(--faint); min-height:18px; }
+  #ctx b { color:var(--amber); font-weight:500; }
+  #askbox { margin:0 12px 14px; display:flex; gap:6px; align-items:center; background:#2f2f2c; border:1px solid var(--line); border-radius:12px; padding:8px 10px; }
+  #askbox input { flex:1; background:none; border:none; color:var(--ink); font:inherit; outline:none; }
+  #quick { display:flex; gap:6px; margin:0 12px 8px; flex-wrap:wrap; }
+
+  /* ---------- main lesson ---------- */
+  #main { flex:1; position:relative; overflow:hidden; display:flex; flex-direction:column;
+          background-image:radial-gradient(#3a3a37 1px, transparent 1px); background-size:22px 22px; }
+  #top { padding:14px 28px 0; }
+  #crumb { font-family:"Oswald"; font-size:11px; letter-spacing:.12em; color:var(--faint); }
+  #title { font-family:"Oswald"; font-size:30px; margin:4px 0 0; }
+  #modelbtn { position:absolute; right:18px; top:16px; z-index:40; background:#2b2b29; transition:right .3s; padding:6px 12px; border:1px solid var(--amber); color:var(--amber); border-radius:8px; font-size:14px; z-index:20; }
+
+  #player { position:relative; margin:12px 28px 0; flex:1; border:1px solid var(--line); border-radius:12px; background:rgba(43,43,41,.92); overflow:hidden; display:flex; flex-direction:column; }
+  #stagearea { position:relative; flex:1; overflow:hidden; }
+  .chap { position:absolute; inset:0; padding:22px 28px; display:none; overflow-y:auto; }
+  .chap.on { display:block; }
+  .cap { font-size:21px; line-height:1.5; max-width:820px; }
+  .gate { display:inline-block; margin-top:10px; padding:6px 12px; border-radius:8px; border:1px dashed var(--amber); color:var(--amber); font-family:"JetBrains Mono"; font-size:13px; }
+
+  .qcard { display:inline-block; padding:10px 16px; border-radius:22px; border:1.5px solid var(--amber); background:#3b372b; font-size:19px; margin:8px 0 14px; }
+  .passages { display:flex; gap:14px; margin-top:6px; }
+  .pass { flex:1; border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; background:var(--panel); cursor:grab; font-size:17px; line-height:1.35; user-select:text; transition:border-color .2s, opacity .2s; }
+  .pass h4 { margin:0 0 4px; font-family:"Oswald"; font-weight:500; font-size:15px; letter-spacing:.03em; }
+  .pass.used { opacity:.45; }
+  .pass.right { border-color:var(--green); } .pass.wrong { border-color:var(--red); }
+  #request { margin-top:16px; border:1.5px dashed var(--line); border-radius:10px; padding:12px 14px; min-height:120px; font-family:"JetBrains Mono"; font-size:13.5px; line-height:1.6; background:#2d2d2b; transition:border-color .2s; }
+  #request.over { border-color:var(--amber); background:#353226; }
+  #request .slot { color:var(--faint); }
+  #answer { margin-top:12px; padding:12px 14px; border-left:3px solid var(--blue); background:#30343a; border-radius:0 8px 8px 0; display:none; font-size:18px; }
+  #contrast { margin-top:14px; display:none; }
+  .vs { display:flex; gap:14px; }
+  .vs > div { flex:1; padding:10px 14px; border-radius:10px; background:var(--panel); font-size:18px; }
+  mark.date { background:none; border-bottom:3px solid var(--amber); color:var(--amber); }
+
+  /* retrieval chapter */
+  #view3d { position:relative; height:290px; border-radius:10px; overflow:hidden; border:1px solid var(--line); background:#262624; }
+  #view3d canvas { display:block; }
+  .hint3d { position:absolute; left:12px; bottom:10px; font-size:13px; color:var(--faint); }
+  #inside { margin-top:14px; display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+  .score { border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--panel); }
+  .score .n { font-family:"JetBrains Mono"; font-size:26px; }
+  .score .bar { height:8px; background:#444; border-radius:4px; margin-top:6px; overflow:hidden; }
+  .score .bar i { display:block; height:100%; background:var(--blue); transition:width .25s; }
+  .score.win { border-color:var(--amber); }
+  #qedit { width:100%; margin-top:12px; background:#2d2d2b; border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:9px 12px; font:inherit; font-size:17px; }
+  .presets { margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; }
+
+  /* check chapter */
+  .opt { display:inline-block; margin:6px 8px 0 0; padding:8px 16px; border:1.5px solid var(--line); border-radius:8px; font-size:17px; }
+  .opt.sel { border-color:var(--amber); color:var(--amber); }
+  #why { width:100%; margin-top:10px; background:#2d2d2b; border:1px solid var(--line); border-radius:8px; color:var(--ink); padding:9px 12px; font:inherit; min-height:60px; }
+
+  /* notes on canvas */
+  .note { position:absolute; width:200px; background:#3a3a33; border:1px solid var(--line); border-left:4px solid var(--amber); border-radius:8px; padding:8px 10px; font-size:14px; z-index:15; cursor:move; box-shadow:0 6px 20px #0006; }
+  .note .lab { font-family:"Oswald"; font-size:11px; letter-spacing:.1em; color:var(--amber); }
+  .note .qt { font-style:italic; color:var(--dim); margin:3px 0; }
+  .note textarea { width:100%; background:none; border:none; color:var(--ink); font:inherit; resize:none; outline:none; }
+  .note .row { display:flex; justify-content:space-between; font-size:12px; color:var(--faint); }
+
+  /* selection toolbar */
+  #seltool { position:fixed; display:none; z-index:60; background:#2a2a28; border:1px solid var(--line); border-radius:10px; padding:5px 8px; gap:6px; align-items:center; box-shadow:0 6px 18px #0008; }
+  #seltool .dot { width:18px; height:18px; border-radius:50%; display:inline-block; }
+  #seltool button { padding:2px 6px; font-size:14px; color:var(--ink); }
+
+  mark.h-imp { background:var(--hl-imp); color:inherit; } mark.h-q { background:var(--hl-q); color:inherit; }
+  mark.h-rev { background:var(--hl-rev); color:inherit; } mark.h-con { background:var(--hl-con); color:inherit; }
+
+  /* player controls */
+  #controls { border-top:1px solid var(--line); padding:8px 14px 10px; background:#272725; }
+  #timeline { position:relative; height:26px; display:flex; gap:4px; }
+  .seg { flex:1; position:relative; border-radius:4px; background:#3a3a37; cursor:pointer; overflow:hidden; }
+  .seg .fill { position:absolute; left:0; top:0; bottom:0; width:0; background:#5a5850; }
+  .seg.cur .fill { background:var(--amber); opacity:.55; }
+  .seg span { position:absolute; left:8px; top:4px; font-size:12px; font-family:"Oswald"; letter-spacing:.06em; color:var(--ink); white-space:nowrap; }
+  .seg .gm { position:absolute; right:6px; top:5px; font-size:11px; color:var(--amber); }
+  #btns { display:flex; align-items:center; gap:10px; margin-top:8px; font-size:14px; }
+  #btns button { padding:4px 10px; border:1px solid var(--line); border-radius:6px; color:var(--dim); }
+  #btns button:hover { color:var(--ink); border-color:#777; }
+  #btns .sp { flex:1; }
+  #playbtn { min-width:70px; }
+
+  /* model view drawer */
+  #model { position:absolute; right:0; top:0; bottom:0; width:380px; background:#1f1f1e; border-left:1px solid #3a3a37; transform:translateX(100%); transition:transform .3s; z-index:30; display:flex; flex-direction:column; font-size:14px; }
+  #model.open { transform:none; }
+  #model.open ~ #modelbtn, body.mopen #modelbtn { right:396px; }
+  .seg.cur { background:#4a4636; outline:1px solid var(--amber); }
+  #model h3 { font-family:"Oswald"; font-weight:500; letter-spacing:.1em; font-size:12px; color:var(--amber); margin:14px 16px 6px; }
+  #model .sec { padding:0 16px; }
+  #events { flex:1; overflow-y:auto; padding:0 16px; font-family:"JetBrains Mono"; font-size:12px; line-height:1.5; }
+  #events div { border-bottom:1px solid #2c2c2a; padding:4px 0; }
+  .ty { display:inline-block; min-width:62px; font-size:10px; padding:0 4px; border-radius:4px; border:1px solid; margin-right:6px; text-align:center; }
+  .t-ans { color:var(--green); border-color:var(--green); } .t-trace { color:var(--blue); border-color:var(--blue); }
+  .t-ask { color:var(--amber); border-color:var(--amber); } .t-later { color:var(--violet); border-color:var(--violet); }
+  .belief { margin:5px 0; }
+  .belief .bb { height:7px; background:#333; border-radius:4px; overflow:hidden; margin-top:2px; }
+  .belief .bb i { display:block; height:100%; transition:width .4s; }
+  #policy div { margin:3px 0; font-family:"JetBrains Mono"; font-size:12px; }
+  #policy .ch { color:var(--amber); }
+  .speed { font-size:10px; padding:0 5px; border-radius:4px; margin-left:4px; }
+  .s-inst { color:var(--green); border:1px solid var(--green); } .s-mod { color:var(--amber); border:1px solid var(--amber); }
+
+  /* guided tour */
+  #tourbtn { position:absolute; right:150px; top:16px; z-index:40; padding:6px 12px; border:1px solid var(--green); color:var(--green); border-radius:8px; font-size:14px; background:#2b2b29; transition:right .3s; }
+  body.mopen #tourbtn { right:528px; }
+  #spot { position:fixed; z-index:80; border:2px solid var(--amber); border-radius:10px; box-shadow:0 0 0 9999px rgba(0,0,0,.45); pointer-events:none; transition:all .5s cubic-bezier(.4,0,.2,1); display:none; }
+  #bubble { position:fixed; z-index:81; max-width:360px; background:#3b372b; border:1px solid var(--amber); border-radius:12px; padding:12px 16px; font-size:19px; line-height:1.35; box-shadow:0 10px 30px #000a; transition:all .5s cubic-bezier(.4,0,.2,1); display:none; }
+  #bubble .n { font-family:"Oswald"; font-size:12px; letter-spacing:.1em; color:var(--amber); display:block; margin-bottom:2px; }
+  #bubble .skip { position:absolute; right:10px; top:8px; font-size:12px; color:var(--dim); }
+  #fcur { position:fixed; z-index:82; width:26px; height:26px; pointer-events:none; transition:all .6s cubic-bezier(.4,0,.2,1); display:none; }
+
+  #level { margin-top:6px; width:100%; background:#262624; color:var(--ink); border:1px solid #3d4a38; border-radius:6px; padding:4px 6px; font:inherit; font-size:14px; }
+  #partbar { margin-top:10px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:16px; }
+  #partdesc { margin-top:6px; font-size:17px; line-height:1.4; color:var(--ink); min-height:24px; }
+  #mtabs { display:flex; gap:6px; padding:12px 16px 0; }
+  #mtabs button { padding:4px 10px; border:1px solid #444; border-radius:6px; font-size:12px; color:var(--dim); font-family:"JetBrains Mono"; }
+  #mtabs button.on { border-color:var(--amber); color:var(--amber); }
+  #live { display:flex; flex-direction:column; flex:1; min-height:0; }
+  #sim { display:none; padding:0 16px 16px; overflow-y:auto; font-size:14px; line-height:1.45; }
+  #sim table { width:100%; border-collapse:collapse; font-family:"JetBrains Mono"; font-size:11.5px; margin-top:8px; }
+  #sim td, #sim th { border-bottom:1px solid #333; padding:4px 3px; text-align:left; }
+  #sim th { color:var(--dim); font-weight:400; }
+  #simlog { font-family:"JetBrains Mono"; font-size:11px; color:var(--dim); max-height:120px; overflow:hidden; margin-top:8px; }
+</style>
+</head>
+<body>
+
+<!-- ============ Ambition shell ============ -->
+<nav id="nav">
+  <div class="logo">AMBITION</div>
+  <a href="#">Home</a><a href="#" class="on">Pursuits</a><a href="#">Integrations</a><a href="#">Chat</a>
+  <div class="xp">NOVICE · 25 XP</div>
+</nav>
+
+<aside id="chat">
+  <div class="head"><small>CHAPTER I</small>What RAG adds to an LLM call
+    <select id="level"><option value="E">Explain for: Everyday</option><option value="En">Explain for: Engineer</option><option value="R">Explain for: Researcher</option></select></div>
+  <div id="msgs"></div>
+  <div id="ctx"></div>
+  <div id="quick">
+    <button class="chip" data-q="summarize">Summarize so far</button>
+    <button class="chip" data-q="deeper">Go deeper</button>
+    <button class="chip" data-q="simpler">Explain simpler</button>
+  </div>
+  <div id="askbox"><input id="askin" placeholder="Ask Waymond about anything on screen..."><span class="dim">🎙</span></div>
+</aside>
+
+<main id="main">
+  <button id="tourbtn">▶ Guided tour</button>
+  <button id="modelbtn">🧠 Model view</button>
+  <div id="top">
+    <div id="crumb">PURSUITS / RETRIEVAL-AUGMENTED GENERATION (RAG)</div>
+    <div id="title">What RAG adds to an LLM call</div>
+  </div>
+
+  <div id="player">
+    <div id="stagearea">
+
+      <!-- CH 1: the question -->
+      <section class="chap" data-ch="0">
+        <div class="cap sel" id="cap1">A travel policy changed yesterday. Someone asks your AI assistant a question.
+          The model was trained months ago, so it has never seen the new policy.</div>
+        <div class="qcard sel">💬 Under policy TR-17, what is the hotel cap for trips starting on or after 1 June?</div>
+        <div class="cap sel dim" style="font-size:19px">RAG means: find the right passage first, then hand it to the model with the question.</div>
+      </section>
+
+      <!-- CH 2: pick the evidence (prediction gate) -->
+      <section class="chap" data-ch="1">
+        <div class="cap" style="font-size:19px">Your turn. <b>Drag the one passage you would send</b> into the request below (or click it).</div>
+        <span class="gate">⏸ the lesson waits for your choice</span>
+        <div class="passages">
+          <div class="pass sel" draggable="true" data-p="A"><h4>A · Previous TR-17</h4>For trips starting <span class="d">before 1 June</span>, the hotel cap is $180 per night.</div>
+          <div class="pass sel" draggable="true" data-p="B"><h4>B · Updated TR-17</h4>For trips starting <span class="d">on or after 1 June</span>, the hotel cap is $220 per night.</div>
+          <div class="pass sel" draggable="true" data-p="C"><h4>C · Expense procedure</h4>Submit hotel receipts within 30 days of returning.</div>
+        </div>
+        <div id="request"><span class="dim">REQUEST TO THE MODEL</span><br>Answer only from the context. Cite its source ID.<br>Context: <span class="slot" id="slot">[ drop a passage here ]</span><br>Question: Under policy TR-17, what is the hotel cap for trips starting on or after 1 June?</div>
+        <div id="answer"></div>
+        <div id="contrast">
+          <div class="vs">
+            <div><span class="dim" style="font-size:14px">YOUR PASSAGE · A</span><br>trips starting <mark class="date">before 1 June</mark></div>
+            <div><span class="dim" style="font-size:14px">THE QUESTION</span><br>trips starting <mark class="date">on or after 1 June</mark></div>
+          </div>
+          <div class="cap" style="font-size:18px;margin-top:8px">A <b>looks</b> right: same policy, same topic, same words. But it is about different dates. <b class="a">Similar is not the same as evidence.</b>
+            <div class="chips"><button class="chip" id="tryagain">Try again</button><button class="chip" data-q="whyA">Why did A look right?</button></div></div>
+        </div>
+      </section>
+
+      <!-- CH 3: inside retrieval (3D) -->
+      <section class="chap" data-ch="2">
+        <div class="cap" style="font-size:19px">How does the system pick a passage? <span class="dim">Click a box to open it. Drag to rotate.</span></div>
+        <div id="view3d"><div class="hint3d">🧊 3D · drag to rotate · scroll to zoom · click a box to expand it</div></div>
+        <div id="partbar">Selected: <b class="a" id="partname">nothing yet</b>
+          <button class="chip" id="partask">✦ Ask about this part</button><button class="chip" id="partclip">✂ Clip to notes</button>
+          <button class="chip" id="partsimpler">Simpler</button><button class="chip" id="partdeeper">Deeper</button></div>
+        <div id="partdesc" class="dim">Click any box. It opens up and shows what is inside.</div>
+        <div id="insidewrap" style="display:none">
+          <div class="cap" style="font-size:18px;margin-top:12px"><b>Inside "Retrieve":</b> this simple retriever counts the words a passage shares with the question, and picks the highest.
+            <span class="dim">(It is the exact code from this lesson, run live.)</span></div>
+          <div id="inside"></div>
+          <input id="qedit" class="sel" value="Under policy TR-17, what is the hotel cap for trips starting on or after 1 June?">
+          <div class="presets"><span class="dim" style="font-size:14px">Try:</span>
+            <button class="chip" data-pre="What is the nightly hotel limit if I travel in June?">ask it in other words</button>
+            <button class="chip" data-pre="What was the hotel cap for trips starting before 1 June?">ask about May</button>
+            <button class="chip" data-pre="Under policy TR-17, what is the hotel cap for trips starting on or after 1 June?">reset</button></div>
+        </div>
+      </section>
+
+      <!-- CH 4: check -->
+      <section class="chap" data-ch="3">
+        <div class="cap sel">A system retrieves <b>A</b> and answers: <span class="qcard" style="font-size:17px">"For a trip starting on 10 June, the cap is $180 per night [A]."</span></div>
+        <div class="cap sel" style="font-size:19px">Does passage A support that answer?</div>
+        <div><button class="opt" data-c="yes">Yes</button><button class="opt" data-c="no">No</button></div>
+        <textarea id="why" placeholder="Why? One sentence."></textarea>
+        <div class="chips"><button class="chip" id="submitcheck">Submit</button></div>
+        <div id="checkfb" class="cap" style="font-size:18px;margin-top:10px"></div>
+      </section>
+
+      <!-- CH 5: days later -->
+      <section class="chap" data-ch="4">
+        <div class="cap"><span class="dim" style="font-size:15px">📱 3 DAYS LATER · NOTIFICATION</span><br><b>Ambition:</b> one question, 60 seconds.</div>
+        <div class="qcard">💬 "Can I bring my partner on the conference trip?"</div>
+        <div class="cap" style="font-size:19px">Which passage is evidence? <span class="dim">(new topic, no hints)</span></div>
+        <div class="passages">
+          <div class="pass" data-d="x"><h4>P · Travel FAQ</h4>Conference trips are a great way to meet partners in the industry.</div>
+          <div class="pass" data-d="ok"><h4>Q · Guest rule</h4>Guests may not travel at company cost; you may pay for a guest yourself.</div>
+          <div class="pass" data-d="x2"><h4>R · Booking</h4>Book conference hotels through the travel portal.</div>
+        </div>
+        <div id="dayfb" class="cap" style="font-size:18px;margin-top:10px"></div>
+      </section>
+
+      <div id="notes"></div>
+    </div>
+
+    <div id="controls">
+      <div id="timeline"></div>
+      <div id="btns">
+        <button id="playbtn">▶ Play</button><button id="back10">⟲ 10s</button><button id="speed">1x</button><button id="cc">CC</button>
+        <span class="sp"></span>
+        <button id="noteBtn">＋ Note</button><button id="sumBtn">Summarize</button><button id="deepBtn">Go deeper</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ what the model sees ============ -->
+  <aside id="model">
+    <div id="mtabs"><button class="on" data-tab="live">Live: this learner</button><button data-tab="sim">Simulate fake students</button></div>
+    <div id="sim">
+      <h3 style="margin-left:0">BEFORE REAL USERS</h3>
+      Fake students, each with <b>one hidden habit</b>, play this lesson. Then we check: does the AI guess each habit correctly?
+      <div class="chips"><button class="chip" id="runsim">▶ Run 200 fake students</button></div>
+      <div id="simlog"></div><div id="simout"></div>
+    </div>
+    <div id="live">
+    <h3>1 · OBSERVATIONS (what she did)</h3>
+    <div id="events"></div>
+    <h3>2 · LEARNER STATE (what the model believes)</h3>
+    <div class="sec" id="beliefs"></div>
+    <h3>3 · POLICY (next move, with odds)</h3>
+    <div class="sec" id="policy"><div class="dim">waits for a chapter boundary...</div></div>
+    <h3>4 · REWARD</h3>
+    <div class="sec" id="reward" style="padding-bottom:14px">day-3 check: <span class="dim">pending</span></div>
+    <div class="sec" style="padding-bottom:14px"><a href="how-ai-learns.html" target="_blank" style="color:var(--amber)">How the AI learns →</a></div>
+    </div>
+  </aside>
+</main>
+
+<div id="seltool">
+  <span class="dot" style="background:#e8c36a" title="Important" data-h="imp"></span>
+  <span class="dot" style="background:#8fc79a" title="Question" data-h="q"></span>
+  <span class="dot" style="background:#e8a06a" title="Revisit" data-h="rev"></span>
+  <span class="dot" style="background:#7fc4c0" title="Connection" data-h="con"></span>
+  <button data-act="note">📝 Note</button><button data-act="ask">✦ Ask</button>
+</div>
+
+<div id="spot"></div>
+<div id="bubble"><span class="n" id="bn"></span><span id="bt"></span><button class="skip" id="bskip">end tour ✕</button></div>
+<svg id="fcur" viewBox="0 0 24 24"><path d="M3 2 L3 20 L8 15 L11 22 L14 21 L11 14 L18 14 Z" fill="#fff" stroke="#000" stroke-width="1.2"/></svg>
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const CH = ['The question', 'Pick evidence', 'Inside retrieval', 'Check', 'Day 3'];
+const GATE = { 1: true, 3: true, 4: true };     // chapters that wait for an answer
+const DUR = [9, 0, 0, 0, 0];                       // seconds of auto-play per chapter (0 = interactive)
+const t0 = performance.now();
+const ts = () => ((performance.now() - t0) / 1000).toFixed(1).padStart(5, ' ') + 's';
+
+// ---------------- learner state (toy versions of the real models) ----------------
+const S = { similar: .30, dates: .40, deep: .50, chapter: 0, picks: [], asks: 0, opened: new Set(), check: null };
+function clamp(x) { return Math.max(.02, Math.min(.98, x)); }
+function renderBeliefs() {
+  const rows = [
+    ['misconception: "similar = evidence"', S.similar, 'var(--red)', 'fast · knowledge state'],
+    ['skill: checks dates & conditions', S.dates, 'var(--green)', 'fast · knowledge state'],
+    ['tends to go deep', S.deep, 'var(--blue)', 'slow · preference (not proof it helps)'],
+  ];
+  rows.push(['stated level: ' + (typeof LVNAME !== 'undefined' ? LVNAME[level] : 'Everyday'), 1, 'var(--amber)', 'set by her · always obeyed']);
+  $('#beliefs').innerHTML = rows.map(([n, v, c, k]) => `<div class="belief">${n} <b style="color:${c}">${Math.round(v * 100)}%</b>
+    <span class="dim" style="font-size:11px">· ${k}</span><div class="bb"><i style="width:${v * 100}%;background:${c}"></i></div></div>`).join('');
+}
+function log(type, text, speed) {
+  const cls = { ans: 't-ans', trace: 't-trace', ask: 't-ask', later: 't-later' }[type];
+  const lab = { ans: 'answer', trace: 'trace', ask: 'question', later: 'later' }[type];
+  const d = document.createElement('div');
+  d.innerHTML = `<span class="dim">${ts()}</span> <span class="ty ${cls}">${lab}</span>${text}` +
+    (speed ? ` <span class="speed ${speed === 'inst' ? 's-inst' : 's-mod'}">${speed === 'inst' ? 'instant · code' : 'model · 1-3 s'}</span>` : '');
+  $('#events').prepend(d); renderBeliefs();
+}
+
+// ---------------- policy: candidate moves, softmax odds, logged probability ----------------
+function decide(where) {
+  const moves = {
+    'contrast the dates': 2.2 * S.similar,
+    'open "Inside retrieval" (3D)': 1.4 * S.deep + .6 * S.similar,
+    'worked example': 1.2 * S.similar * (1 - S.deep),
+    'harder case (reworded question)': 2.0 * S.dates,
+    'move on': 1.6 * (1 - S.similar) * S.dates,
+  };
+  const ex = Object.entries(moves).map(([k, v]) => [k, Math.exp(v * 2)]);
+  const Z = ex.reduce((a, [, v]) => a + v, 0);
+  const probs = ex.map(([k, v]) => [k, v / Z]).sort((a, b) => b[1] - a[1]);
+  const chosen = probs[0][0];
+  $('#policy').innerHTML = `<div class="dim">at: ${where}</div>` + probs.map(([k, p]) =>
+    `<div class="${k === chosen ? 'ch' : ''}">${k === chosen ? '▶' : '&nbsp;'} ${k.padEnd(34, ' ')} p=${p.toFixed(2)}</div>`).join('') +
+    `<div class="dim" style="margin-top:4px">receipt saved: state + options + odds + choice</div>`;
+  return chosen;
+}
+
+// ---------------- Waymond (scripted here; a fast model in the real thing) ----------------
+function say(html, chips = [], delay = 1100) {
+  const t = document.createElement('div'); t.className = 'm w typing'; t.textContent = 'Waymond is thinking...';
+  $('#msgs').appendChild(t); $('#msgs').scrollTop = 1e6;
+  setTimeout(() => {
+    t.className = 'm w'; t.innerHTML = html + (chips.length ? `<div class="chips">${chips.map(([l, q]) => `<button class="chip" data-q="${q}">${l}</button>`).join('')}</div>` : '') +
+      `<span class="tag">model · ${(delay / 1000).toFixed(1)} s · numbers checked by code</span>`;
+    $('#msgs').scrollTop = 1e6;
+  }, delay);
+}
+function you(text, quote) {
+  const d = document.createElement('div'); d.className = 'm you';
+  d.innerHTML = (quote ? `<span class="quote">"${quote}"</span>` : '') + text;
+  $('#msgs').appendChild(d); $('#msgs').scrollTop = 1e6;
+}
+let context = null;
+function setContext(what) { context = what; $('#ctx').innerHTML = what ? `Looking at: <b>${what}</b>` : ''; }
+
+const ANS = {
+  summarize: () => `So far: a model can't know yesterday's policy, so RAG <b>finds a passage and adds it to the request</b>.` +
+    (S.picks.includes('A') ? ` You first picked A. It shares the topic, but covers the wrong dates.` : '') +
+    (S.opened.size ? ` You looked inside: ${[...S.opened].join(', ')}.` : '') +
+    ($$('.note').length ? ` Your notes: ${$$('.note .qt').map(n => n.textContent).join(' · ')}` : ''),
+  deeper: () => { goChapter(2); setTimeout(() => open3D('Retrieve'), 600); S.deep = clamp(S.deep + .08); log('trace', 'go_deeper → opened Retrieve', 'inst');
+    return `Opening the part that does the picking: <b>Retrieve</b>. Try rewording the question and watch which passage wins.`; },
+  simpler: () => `Think of it like an open-book exam. The model is the student. RAG is the friend who finds <b>the right page</b> and puts it on the desk. The wrong page, even if it's about hotels, doesn't help.`,
+  whyA: () => `A uses almost the same words: "TR-17", "hotel cap", "trips starting", "1 June". Only <mark class="date">before</mark> vs <mark class="date">on or after</mark> differs. A word-matching search can be fooled the same way. Want to see it happen?`,
+};
+function quick(q) {
+  const label = { summarize: 'Summarize so far', deeper: 'Go deeper', simpler: 'Explain simpler', whyA: 'Why did A look right?', show: 'Show me', retr: 'Show me the retriever' }[q] || q;
+  you(label); S.asks++;
+  log('ask', `quick_action "${label}"` + (context ? ` · on ${context}` : ''), 'mod');
+  if (q === 'show' || q === 'retr') { say(ANS.deeper()); return; }
+  say((ANS[q] || (() => 'Good question.'))(), q === 'whyA' ? [['Show me', 'retr']] : [['Explain simpler', 'simpler'], ['Go deeper', 'deeper']]);
+}
+document.addEventListener('click', e => { const q = e.target.closest('[data-q]'); if (q) quick(q.dataset.q); });
+
+$('#askin').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !e.target.value.trim()) return;
+  const text = e.target.value.trim(); e.target.value = ''; you(text, pendingQuote); S.asks++;
+  log('ask', `ask "${text}"` + (pendingQuote ? ` · quoting "${pendingQuote.slice(0, 30)}…"` : '') + (context ? ` · on ${context}` : ''), 'mod');
+  const low = text.toLowerCase();
+  let reply = `Good question. Here, the key is whether the passage covers <b>the same dates and conditions</b> as the question, not just the same topic.`;
+  if (low.includes('why') && low.includes('a')) reply = ANS.whyA();
+  if (low.includes('3d') || low.includes('inside') || low.includes('how does')) reply = ANS.deeper();
+  if (low.includes('summar')) reply = ANS.summarize();
+  say(reply, [['Explain simpler', 'simpler'], ['Go deeper', 'deeper']]);
+  pendingQuote = null;
+});
+
+// ---------------- player: chapters, play, rewind, speed ----------------
+let playing = false, prog = 0, speed = 1, timer = null;
+$('#timeline').innerHTML = CH.map((c, i) => `<div class="seg" data-i="${i}"><div class="fill"></div><span>${i + 1} · ${c}</span>${GATE[i] ? '<span class="gm">◆</span>' : ''}</div>`).join('');
+function goChapter(i, how = 'click') {
+  if (S.chapter !== i) log('trace', `${how === 'skip' ? 'skip' : 'jump'} chapter ${S.chapter + 1} → ${i + 1} "${CH[i]}"`, 'inst');
+  if (i > S.chapter + 1 && how !== 'auto') S.deep = clamp(S.deep - .05);
+  S.chapter = i; prog = 0;
+  $$('.chap').forEach(c => c.classList.toggle('on', +c.dataset.ch === i));
+  $$('.seg').forEach((s, k) => { s.classList.toggle('cur', k === i); s.querySelector('.fill').style.width = k < i ? '100%' : '0'; });
+  if (i === 2) init3D();
+  if (GATE[i]) pause('gate');
+}
+function tick() {
+  if (!playing) return;
+  const d = DUR[S.chapter];
+  if (!d) { pause('gate'); return; }
+  prog += .1 * speed;
+  $$('.seg')[S.chapter].querySelector('.fill').style.width = Math.min(100, prog / d * 100) + '%';
+  if (prog >= d) goChapter(S.chapter + 1, 'auto');
+}
+function play() { playing = true; $('#playbtn').textContent = '❚❚ Pause'; log('trace', `play · chapter ${S.chapter + 1}`, 'inst'); clearInterval(timer); timer = setInterval(tick, 100); }
+function pause(why) { playing = false; $('#playbtn').textContent = '▶ Play'; clearInterval(timer); if (why !== 'gate') log('trace', `pause at ${prog.toFixed(1)}s of chapter ${S.chapter + 1}`, 'inst'); }
+$('#playbtn').onclick = () => playing ? pause() : play();
+$('#back10').onclick = () => { log('trace', `rewind 10s in chapter ${S.chapter + 1}`, 'inst'); if (prog < 1 && S.chapter > 0) goChapter(S.chapter - 1, 'rewind'); prog = Math.max(0, prog - 10); };
+$('#speed').onclick = () => { speed = speed === 1 ? 1.5 : speed === 1.5 ? 2 : 1; $('#speed').textContent = speed + 'x'; log('trace', `speed → ${speed}x`, 'inst'); };
+$('#cc').onclick = () => log('trace', 'captions toggled', 'inst');
+$$('.seg').forEach(s => s.onclick = () => goChapter(+s.dataset.i, +s.dataset.i > S.chapter + 1 ? 'skip' : 'click'));
+$('#modelbtn').onclick = () => { $('#model').classList.toggle('open'); document.body.classList.toggle('mopen'); };
+
+// ---------------- chapter 2: drag a passage into the request ----------------
+const PTEXT = { A: 'For trips starting before 1 June, the hotel cap is $180 per night.', B: 'For trips starting on or after 1 June, the hotel cap is $220 per night.', C: 'Submit hotel receipts within 30 days of returning.' };
+let pickStart = null;
+$$('.pass[data-p]').forEach(p => {
+  p.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', p.dataset.p); pickStart = pickStart || performance.now(); });
+  p.addEventListener('click', e => { if (!window.getSelection().toString()) choose(p.dataset.p); });
+});
+const req = $('#request');
+req.addEventListener('dragover', e => { e.preventDefault(); req.classList.add('over'); });
+req.addEventListener('dragleave', () => req.classList.remove('over'));
+req.addEventListener('drop', e => { e.preventDefault(); req.classList.remove('over'); choose(e.dataTransfer.getData('text/plain')); });
+function choose(k) {
+  const secs = ((performance.now() - (pickStart || performance.now())) / 1000).toFixed(1);
+  S.picks.push(k);
+  $('#slot').innerHTML = `<span style="color:var(--ink)">[${k}] ${PTEXT[k]}</span>`;
+  $$('.pass[data-p]').forEach(p => p.classList.remove('right', 'wrong'));
+  const card = $(`.pass[data-p="${k}"]`);
+  const a = $('#answer'); a.style.display = 'block';
+  if (k === 'B') {
+    card.classList.add('right'); $('#contrast').style.display = 'none';
+    a.innerHTML = `<b>Model's answer:</b> $220 per night <span class="b">[B]</span> <span class="g">✓ supported by the passage</span>`;
+    S.similar = clamp(S.similar - (S.picks.length === 1 ? .25 : .12)); S.dates = clamp(S.dates + (S.picks.length === 1 ? .3 : .12));
+    log('ans', `pick_passage B · attempt ${S.picks.length}`, 'inst');
+  } else {
+    card.classList.add('wrong');
+    a.innerHTML = k === 'A' ? `<b>Model's answer:</b> "This passage covers trips before 1 June. It doesn't give the cap for your trip." <span class="r">✗</span>`
+      : `<b>Model's answer:</b> "The passage is about receipts. It doesn't mention a hotel cap." <span class="r">✗</span>`;
+    if (k === 'A') { S.similar = clamp(S.similar + .5); S.dates = clamp(S.dates - .15); $('#contrast').style.display = 'block'; }
+    else { S.similar = clamp(S.similar + .05); }
+    log('ans', `pick_passage ${k} · wrong · ${k === 'A' ? 'topic look-alike' : 'off-topic'}`, 'inst');
+  }
+  const mv = decide('after the pick');
+  if (k === 'A') say(`You picked A. Fair: it shares almost every word with the question. Look at the <mark class="date">dates</mark> though.`, [['Why did A look right?', 'whyA'], ['Show me how a computer picks', 'retr']], 1300);
+  if (k === 'B') say(mv === 'harder case (reworded question)' ? `Right, and you matched the dates. Want a harder one? I'll reword the question so the words stop helping.` : `Right: B covers your dates. Next, let's open the box that does this picking automatically.`,
+    [['Go deeper', 'deeper'], ['Summarize so far', 'summarize']], 1200);
+}
+$('#tryagain').onclick = () => { log('trace', 'try_again after wrong pick', 'inst'); $('#slot').textContent = '[ drop a passage here ]'; $('#answer').style.display = 'none'; $('#contrast').style.display = 'none'; $$('.pass[data-p]').forEach(p => p.classList.remove('right', 'wrong')); };
+
+// ---------------- chapter 3: 3D pipeline that expands + live retriever ----------------
+const PART = {
+  Documents: { E: 'All the policy pages your company has. Too many to hand to the model at once.',
+    En: 'The source collection: PDFs or web pages turned into text, each kept with details like policy ID and the date it starts.',
+    R: 'The corpus. Retrieval can only be as good as its coverage and freshness: a stale copy of TR-17 is exactly how this bug happens.' },
+  Chunks: { E: 'Each page is cut into short passages, like A, B and C.',
+    En: 'Chunking: split by headings or a few hundred words, often with overlap. Keep the dates on every chunk, or retrieval cannot tell A from B.',
+    R: 'Chunk size trades recall against precision. Fixed-size vs structure-aware chunking changes which evidence units even exist.' },
+  Retrieve: { E: 'Picks the passage that best matches the question. This one simply counts shared words.',
+    En: 'Here: count shared words, take the top one. Real systems use keyword search (BM25), vector search, or both, then a reranker.',
+    R: 'Word overlap is a crude lexical score. Its ties and paraphrase failures are why dense retrieval and cross-encoder reranking exist; measure with recall@k.' },
+  Context: { E: 'The note handed to the model: the rules, the chosen passage, and the question.',
+    En: 'Prompt assembly: instructions + top passages with IDs + question. It all has to fit in the context window.',
+    R: 'Context construction: passage order, how many, and citation format all change faithfulness; long contexts can bury the middle passages.' },
+  LLM: { E: 'The model reads the note and writes an answer. It learns nothing new here.',
+    En: 'Inference only: the weights are frozen. Its behavior is steered by the request, not by training.',
+    R: 'Parametric vs non-parametric memory (Lewis et al. 2020): retrieval updates the external memory without touching the weights.' },
+  Answer: { E: 'The reply, with [B] so you can check where it came from.',
+    En: 'Answer with citations. Check each claim against the cited passage.',
+    R: 'Attribution: a citation being present is not the same as the passage supporting the claim, which is exactly the chapter 4 check.' },
+};
+const LV = ['E', 'En', 'R'], LVNAME = { E: 'Everyday', En: 'Engineer', R: 'Researcher' };
+let level = 'E', partSel = null;
+function txtSprite(text, w, hgt, opt = {}) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * hgt / w); const g = c.getContext('2d');
+  if (opt.bg) { g.fillStyle = opt.bg; g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 18); g.fill(); }
+  g.font = `${opt.weight || 600} ${opt.size || 54}px ${opt.font || 'Oswald, sans-serif'}`; g.fillStyle = opt.color || '#ecebe6'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  String(text).split('\n').forEach((ln, i, a) => g.fillText(ln, c.width / 2, c.height / 2 + (i - (a.length - 1) / 2) * (opt.size || 54) * 1.15));
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false })); s.scale.set(w, hgt, 1); return s;
+}
+let three = null;
+function init3D() {
+  if (three || !window.THREE) return;
+  const el = $('#view3d'), W = el.clientWidth, H = el.clientHeight;
+  const r = new THREE.WebGLRenderer({ antialias: true, alpha: true }); r.setPixelRatio(devicePixelRatio); r.setSize(W, H); el.appendChild(r.domElement);
+  const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(40, W / H, .1, 100);
+  scene.add(new THREE.AmbientLight(0xffffff, .55)); const dl = new THREE.DirectionalLight(0xffffff, .7); dl.position.set(3, 6, 5); scene.add(dl);
+  const names = ['Documents', 'Chunks', 'Retrieve', 'Context', 'LLM', 'Answer'];
+  const cols = [0x8a887f, 0x9a8f78, 0xe8c36a, 0x8fb3e5, 0xd59be0, 0x8fc79a];
+  const kids = {};
+  const boxes = names.map((n, i) => {
+    const m = new THREE.Mesh(new THREE.BoxGeometry(1.3, .8, .9), new THREE.MeshLambertMaterial({ color: cols[i] }));
+    m.position.set((i - 2.5) * 1.9, 0, 0); m.userData.name = n; scene.add(m);
+    const lab = txtSprite(n, 1.6, .4); lab.position.set(m.position.x, -.75, 0); scene.add(lab);
+    if (i) { const a = new THREE.Mesh(new THREE.CylinderGeometry(.04, .04, .6, 8), new THREE.MeshBasicMaterial({ color: 0x777777 })); a.rotation.z = Math.PI / 2; a.position.set(m.position.x - .95, 0, 0); scene.add(a); }
+    const g = new THREE.Group(); g.position.set(m.position.x, 1.05, 0); g.scale.setScalar(.001); g.visible = false; scene.add(g); kids[n] = g;
+    return m;
+  });
+  // what each box expands into
+  ['TR-17 policy', 'Expense rules', 'Travel FAQ'].forEach((t, k) => {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(.55, .75, .03), new THREE.MeshLambertMaterial({ color: 0xd8d4c8 }));
+    p.position.set((k - 1) * .6, .45, -k * .08); p.rotation.y = (k - 1) * -.25; kids.Documents.add(p);
+    const s = txtSprite(t, .9, .22, { size: 40, color: '#ecebe6' }); s.position.set((k - 1) * .6, 1.0, 0); kids.Documents.add(s);
+  });
+  [['A', 0x8a887f], ['B', 0x8fc79a], ['C', 0x8a887f]].forEach(([t, c], k) => {
+    const p = new THREE.Mesh(new THREE.BoxGeometry(.5, .4, .05), new THREE.MeshLambertMaterial({ color: c }));
+    p.position.set((k - 1) * .62, .35 + Math.abs(k - 1) * .1, 0); kids.Chunks.add(p);
+    const s = txtSprite(t, .4, .3, { size: 300, color: '#1f1f1e' }); s.position.set((k - 1) * .62, .35 + Math.abs(k - 1) * .1, .1); kids.Chunks.add(s);
+  });
+  const bars = {};
+  ['A', 'B', 'C'].forEach((t, k) => {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(.28, 1, .28), new THREE.MeshLambertMaterial({ color: 0x8fb3e5 }));
+    b.position.set((k - 1) * .45, 0, 0); kids.Retrieve.add(b);
+    const s = txtSprite(t, .3, .25, { size: 300 }); s.position.set((k - 1) * .45, -.15, .25); kids.Retrieve.add(s);
+    const n = txtSprite('0', .4, .3, { color: '#e8c36a' }); kids.Retrieve.add(n);
+    bars[t] = { b, n };
+  });
+  const ctxS = txtSprite('rules\n+ [B] passage\n+ question', 1.5, .8, { size: 44, bg: '#30343a', weight: 500, font: 'JetBrains Mono, monospace' }); ctxS.position.set(0, .55, 0); kids.Context.add(ctxS);
+  const llmS = txtSprite('weights\nunchanged', 1.2, .6, { size: 50, color: '#d59be0' }); llmS.position.set(0, .45, 0); kids.LLM.add(llmS);
+  const ansS = txtSprite('$220 per night [B]', 1.7, .4, { size: 46, bg: '#2f3a2c', color: '#8fc79a' }); ansS.position.set(0, .4, 0); kids.Answer.add(ansS);
+  // a request dot flowing through the pipeline
+  const q = new THREE.Mesh(new THREE.SphereGeometry(.13, 20, 20), new THREE.MeshBasicMaterial({ color: 0xe8c36a })); scene.add(q);
+  let yaw = -.25, pitch = .38, dist = 13, target = new THREE.Vector3(0, .3, 0), want = { dist: 13, x: 0 }, drag = null;
+  el.addEventListener('pointerdown', e => drag = { x: e.clientX, y: e.clientY, moved: 0 });
+  addEventListener('pointerup', e => {
+    if (drag && drag.moved < 5 && e.target === r.domElement) {
+      const rect = r.domElement.getBoundingClientRect(), v = new THREE.Vector2((e.clientX - rect.left) / rect.width * 2 - 1, -(e.clientY - rect.top) / rect.height * 2 + 1);
+      const ray = new THREE.Raycaster(); ray.setFromCamera(v, cam); const hit = ray.intersectObjects(boxes)[0];
+      if (hit) open3D(hit.object.userData.name);
+    }
+    if (drag && drag.moved >= 5) log('trace', `rotate 3D view (${drag.moved.toFixed(0)}px)`, 'inst');
+    drag = null;
+  });
+  addEventListener('pointermove', e => { if (!drag) return; delete want.pitch; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.moved += Math.abs(dx) + Math.abs(dy); drag.x = e.clientX; drag.y = e.clientY; yaw -= dx * .006; pitch = Math.max(.05, Math.min(1.2, pitch + dy * .004)); });
+  el.addEventListener('wheel', e => { e.preventDefault(); want.dist = Math.max(4, Math.min(20, want.dist + e.deltaY * .01)); log('trace', 'zoom 3D', 'inst'); }, { passive: false });
+  const t1 = performance.now();
+  (function loop() {
+    dist += (want.dist - dist) * .08; target.x += (want.x - target.x) * .08;
+    if (want.pitch !== undefined && !drag) { pitch += (want.pitch - pitch) * .06; yaw += (want.yaw - yaw) * .06; }
+    target.y += ((three && three.open ? 1.0 : .3) - target.y) * .08;
+    cam.position.set(target.x + Math.sin(yaw) * Math.cos(pitch) * dist, .3 + Math.sin(pitch) * dist, Math.cos(yaw) * Math.cos(pitch) * dist); cam.lookAt(target);
+    const k = ((performance.now() - t1) / 4200) % 1; q.position.set(-4.75 + k * 9.5, .55 + Math.sin(k * Math.PI * 6) * .08, .55);
+    names.forEach(n => { const g = kids[n], on = three && three.open === n; const s = g.scale.x + ((on ? 1.5 : .001) - g.scale.x) * .12; g.scale.setScalar(s); g.visible = s > .01; });
+    boxes.forEach(b => b.scale.setScalar(b.userData.name === three?.open ? 1.08 : 1));
+    r.render(scene, cam); requestAnimationFrame(loop);
+  })();
+  three = { open: null,
+    focus(name) { const b = boxes.find(x => x.userData.name === name); want.x = b.position.x; want.dist = 5.2; want.pitch = .28; want.yaw = -.12; this.open = name; },
+    bars(sc, win) { const mx = Math.max(1, ...sc.map(s => s[1])); sc.forEach(([k, n]) => { const o = bars[k], hh = .1 + n / mx * .75;
+      o.b.scale.y = hh; o.b.position.y = hh / 2; o.b.material.color.setHex(k === win ? 0xe8c36a : 0x8fb3e5);
+      const c = o.n.material.map.image, g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height); g.font = '600 220px Oswald'; g.fillStyle = '#e8c36a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(n, c.width / 2, c.height / 2); o.n.material.map.needsUpdate = true;
+      o.n.position.set(o.b.position.x, hh + .25, 0); }); },
+  };
+  score();
+}
+function showPart(name, lv) {
+  $('#partname').textContent = name; $('#partdesc').innerHTML = `<span class="dim" style="font-size:13px">${LVNAME[lv]} level ·</span> ${PART[name][lv]}`;
+}
+function open3D(name) {
+  init3D(); if (!three) return;
+  three.focus(name); partSel = name; S.opened.add(name); S.deep = clamp(S.deep + .06);
+  log('trace', `expand_box "${name}" in 3D`, 'inst'); setContext(`${name} (3D)`); showPart(name, level);
+  if (name === 'Retrieve') { $('#insidewrap').style.display = 'block'; score(); }
+}
+$('#partask').onclick = () => {
+  if (!partSel) return; you('Explain this part', `3D: ${partSel}`); S.asks++;
+  log('ask', `ask_about_part "${partSel}" · level ${LVNAME[level]}`, 'mod');
+  say(PART[partSel][level], [['Simpler', 'p_simpler'], ['Deeper', 'p_deeper']], 1000);
+};
+$('#partclip').onclick = () => { if (!partSel) return; addNote(`🧊 ${partSel}: ${PART[partSel][level]}`); log('trace', `clip_part "${partSel}" to notes`, 'inst'); };
+function shiftPart(d) {
+  if (!partSel) return; const lv = LV[Math.max(0, Math.min(2, LV.indexOf(level) + d))];
+  showPart(partSel, lv); log('trace', `${d > 0 ? 'deeper' : 'simpler'} on "${partSel}" → ${LVNAME[lv]}`, 'inst'); if (d > 0) S.deep = clamp(S.deep + .05);
+  return lv;
+}
+$('#partsimpler').onclick = () => shiftPart(-1);
+$('#partdeeper').onclick = () => shiftPart(1);
+document.addEventListener('click', e => {
+  const q = e.target.closest('[data-q="p_simpler"],[data-q="p_deeper"]'); if (!q || !partSel) return;
+  e.stopImmediatePropagation(); const lv = shiftPart(q.dataset.q === 'p_deeper' ? 1 : -1);
+  you(q.dataset.q === 'p_deeper' ? 'Deeper' : 'Simpler'); say(PART[partSel][lv], [['Simpler', 'p_simpler'], ['Deeper', 'p_deeper']], 900);
+}, true);
+$('#level').onchange = e => {
+  level = e.target.value; log('trace', `set_level → ${LVNAME[level]} (stated preference)`, 'inst');
+  if (partSel) showPart(partSel, level);
+  say(`Got it. I'll explain at <b>${LVNAME[level]}</b> level from now on. You can change it anytime, and I'll tell you if another level seems to work better for you.`, [], 700);
+  renderBeliefs();
+};
+// the lesson's own retriever: count shared lower-cased whitespace tokens, Python max() keeps the first on ties
+function overlap(q, t) { const w = new Set(q.toLowerCase().split(/\s+/)); return t.toLowerCase().split(/\s+/).filter((x, i, a) => w.has(x) && a.indexOf(x) === i).length; }
+function score() {
+  const q = $('#qedit').value; const sc = ['A', 'B', 'C'].map(k => [k, overlap(q, PTEXT[k])]);
+  let best = sc[0]; sc.forEach(s => { if (s[1] > best[1]) best = s; });
+  const max = Math.max(1, ...sc.map(s => s[1]));
+  $('#inside').innerHTML = sc.map(([k, n]) => `<div class="score ${k === best[0] ? 'win' : ''}"><b class="osw">${k}</b> <span class="dim">shared words</span>
+    <div class="n">${n}</div><div class="bar"><i style="width:${n / max * 100}%"></i></div>${k === best[0] ? '<span class="a" style="font-size:14px">← retrieved</span>' : ''}</div>`).join('');
+  if (three && three.bars) three.bars(sc, best[0]);
+  return best[0];
+}
+let qTimer = null;
+$('#qedit').addEventListener('input', () => { const w = score(); clearTimeout(qTimer); qTimer = setTimeout(() => log('trace', `edit_question → retrieves ${w}`, 'inst'), 700); });
+$$('[data-pre]').forEach(b => b.onclick = () => {
+  $('#qedit').value = b.dataset.pre; const w = score(); log('trace', `try_preset "${b.textContent}" → retrieves ${w}`, 'inst');
+  if (b.textContent.includes('other words')) { say(`See that? Asked in other words, the word-counter <b>ties and picks A</b>, the wrong dates. That's why lesson 3 is "find evidence, not just similar text".`, [['Explain simpler', 'simpler']], 1000); }
+});
+
+// ---------------- chapter 4: check ----------------
+let choice = null;
+$$('.opt').forEach(o => o.onclick = () => { $$('.opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel'); choice = o.dataset.c; });
+$('#submitcheck').onclick = () => {
+  if (!choice) return;
+  const ok = choice === 'no', why = $('#why').value.trim();
+  S.check = ok; S.similar = clamp(S.similar + (ok ? -.3 : .2)); S.dates = clamp(S.dates + (ok ? .3 : -.1));
+  log('ans', `check: ${choice}${why ? ` · "${why.slice(0, 40)}"` : ''} · ${ok ? 'correct' : 'wrong'}`, 'inst');
+  $('#checkfb').innerHTML = ok ? `<span class="g">✓ Right.</span> A covers trips <mark class="date">before 1 June</mark>. A 10 June trip isn't covered, even though the citation looks neat.`
+    : `<span class="r">Not quite.</span> The citation looks neat, but A only covers trips <mark class="date">before 1 June</mark>.`;
+  const mv = decide('after the check');
+  $('#reward').innerHTML = `day-3 check: <span class="a">scheduled</span> · picked by a separate scheduler at random, the policy can't choose it`;
+};
+
+// ---------------- chapter 5: day 3 (the reward) ----------------
+$$('.pass[data-d]').forEach(p => p.onclick = () => {
+  const ok = p.dataset.d === 'ok';
+  $$('.pass[data-d]').forEach(x => x.classList.remove('right', 'wrong')); p.classList.add(ok ? 'right' : 'wrong');
+  log('later', `day-3 check · picked ${p.querySelector('h4').textContent.split(' ')[0]} · ${ok ? 'correct, no hints' : 'wrong (took the "partners" word trap)'}`, 'inst');
+  $('#dayfb').innerHTML = ok ? `<span class="g">✓</span> She skipped the word trap ("partners") and found the real rule. <b class="a">This answer is the reward the system learns from.</b>`
+    : `<span class="r">✗</span> "Partners" matched the words but not the meaning. The system brings back the dates lesson, briefly.`;
+  $('#reward').innerHTML = `day-3 check: <b class="${ok ? 'g' : 'r'}">${ok ? 'correct → +1' : 'wrong → 0'}</b> · this, not watch time, trains the policy`;
+});
+
+// ---------------- highlight / note / ask on any text ----------------
+let pendingQuote = null, selRange = null;
+document.addEventListener('mouseup', e => {
+  if (e.target.closest('#seltool')) return;
+  const s = window.getSelection(), txt = s.toString().trim();
+  const inSel = s.rangeCount && s.anchorNode && s.anchorNode.parentElement?.closest('.sel');
+  if (!txt || !inSel) { $('#seltool').style.display = 'none'; return; }
+  selRange = s.getRangeAt(0).cloneRange();
+  const rc = selRange.getBoundingClientRect(), tool = $('#seltool');
+  tool.style.display = 'flex'; tool.style.left = (rc.left + rc.width / 2 - 110) + 'px'; tool.style.top = (rc.top - 44) + 'px';
+});
+const HNAME = { imp: 'Important', q: 'Question', rev: 'Revisit', con: 'Connection' };
+$$('#seltool .dot').forEach(d => d.onclick = () => {
+  const txt = selRange.toString(); const m = document.createElement('mark'); m.className = 'h-' + d.dataset.h;
+  try { selRange.surroundContents(m); } catch (_) {}
+  $('#seltool').style.display = 'none'; window.getSelection().removeAllRanges();
+  log('trace', `highlight as ${HNAME[d.dataset.h]}: "${txt.slice(0, 32)}"`, 'inst');
+  if (d.dataset.h === 'q') { S.similar = clamp(S.similar + (/(1 June|before|after)/.test(txt) ? -.06 : .0)); say(`You marked "<i>${txt}</i>" as a question. Want me to explain it, or keep going and come back later?`, [['Explain this', 'simpler'], ['Later', 'summarize']], 900); }
+  if (d.dataset.h === 'rev') log('trace', 'scheduled into revisit queue', 'inst');
+});
+$('#seltool [data-act="note"]').onclick = () => { const t = selRange.toString(); $('#seltool').style.display = 'none'; addNote(t); };
+$('#seltool [data-act="ask"]').onclick = () => {
+  const t = selRange.toString(); $('#seltool').style.display = 'none'; pendingQuote = t; setContext(`"${t.slice(0, 28)}…"`);
+  $('#askin').placeholder = 'Ask about the quoted text...'; $('#askin').focus();
+  log('trace', `ask_on_selection "${t.slice(0, 32)}"`, 'inst');
+};
+let noteN = 0;
+function addNote(quote) {
+  const n = document.createElement('div'); n.className = 'note'; const x = 30 + (noteN % 3) * 220, y = 30 + Math.floor(noteN / 3) * 120; noteN++;
+  n.style.right = x + 'px'; n.style.top = y + 'px';
+  n.innerHTML = `<div class="lab">NOTE</div>${quote ? `<div class="qt">${quote}</div>` : ''}<textarea rows="2" placeholder="Add your note..."></textarea>
+    <div class="row"><span>drag to move</span><span>✦ Ask · 🗑</span></div>`;
+  $('#notes').appendChild(n);
+  let d = null; n.addEventListener('pointerdown', e => { if (e.target.tagName === 'TEXTAREA') return; d = { x: e.clientX, y: e.clientY, r: parseFloat(n.style.right), t: parseFloat(n.style.top) }; });
+  addEventListener('pointermove', e => { if (!d) return; n.style.right = (d.r - (e.clientX - d.x)) + 'px'; n.style.top = (d.t + (e.clientY - d.y)) + 'px'; });
+  addEventListener('pointerup', () => { if (d) log('trace', 'move note on canvas', 'inst'); d = null; });
+  n.querySelector('textarea').addEventListener('change', e => log('trace', `note text: "${e.target.value.slice(0, 30)}"`, 'inst'));
+  log('trace', `note_create${quote ? ` from "${quote.slice(0, 28)}"` : ''}`, 'inst');
+}
+$('#noteBtn').onclick = () => addNote('');
+$('#sumBtn').onclick = () => quick('summarize');
+$('#deepBtn').onclick = () => quick('deeper');
+
+
+// ---------------- guided tour ----------------
+let touring = 0;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function spotOn(sel, pad = 8) {
+  const el = typeof sel === 'string' ? $(sel) : sel; if (!el) return null;
+  const r = el.getBoundingClientRect(), s = $('#spot');
+  s.style.display = 'block'; s.style.left = (r.left - pad) + 'px'; s.style.top = (r.top - pad) + 'px'; s.style.width = (r.width + pad * 2) + 'px'; s.style.height = (r.height + pad * 2) + 'px';
+  return r;
+}
+function bubble(r, n, text) {
+  const b = $('#bubble'); $('#bn').textContent = n; $('#bt').innerHTML = text; b.style.display = 'block';
+  const bw = 360, bh = b.offsetHeight || 90; let x = r.left, y = r.bottom + 18;
+  if (r.left > innerWidth * .62) { b.style.left = Math.max(10, r.left - bw - 26) + 'px'; b.style.top = Math.max(10, Math.min(innerHeight - bh - 10, r.top)) + 'px'; return; }
+  if (y + bh > innerHeight - 10) y = r.top - bh - 18;
+  if (y < 10) { y = Math.min(innerHeight - bh - 10, r.top + 10); x = r.right + 18 > innerWidth - bw ? r.left - bw - 18 : r.right + 18; }
+  b.style.left = Math.max(10, Math.min(innerWidth - bw - 10, x)) + 'px'; b.style.top = Math.max(10, y) + 'px';
+}
+async function cursorTo(sel, click) {
+  const el = typeof sel === 'string' ? $(sel) : sel; if (!el) return; const r = el.getBoundingClientRect(), c = $('#fcur');
+  c.style.display = 'block'; c.style.left = (r.left + r.width / 2) + 'px'; c.style.top = (r.top + r.height / 2) + 'px';
+  await wait(700); if (click) { c.style.transform = 'scale(.8)'; await wait(150); c.style.transform = ''; }
+}
+async function step(my, n, sel, text, ms, action, cursorSel) {
+  if (my !== touring) throw 'stop';
+  if (cursorSel !== undefined) await cursorTo(cursorSel || sel, true);
+  if (action) action();
+  await wait(250);
+  const r = spotOn(sel); if (r) bubble(r, n, text);
+  await wait(ms);
+}
+function endTour() {
+  touring++; ['#spot', '#bubble', '#fcur'].forEach(s => $(s).style.display = 'none'); $('#tourbtn').textContent = '▶ Guided tour';
+}
+function openModel(on) { $('#model').classList.toggle('open', on); document.body.classList.toggle('mopen', on); }
+async function tour() {
+  const my = ++touring; $('#tourbtn').textContent = '■ Stop tour';
+  openModel(false); goChapter(0, 'auto');
+  const N = (i) => `STEP ${i} OF 12`;
+  try {
+    await step(my, N(1), '#player', 'This is an Ambition lesson that <b>plays like a video</b>. Watch the bar at the bottom fill up.', 3800, () => play(), '#playbtn');
+    await step(my, N(2), '#timeline', 'Chapters, like YouTube. The <span class="a">◆</span> marks are where the lesson <b>stops and asks you</b>.', 3500);
+    await step(my, N(3), '.chap[data-ch="1"] .passages', 'Here it stops. Priya must <b>pick the passage</b> that answers the question.', 3500, () => goChapter(1, 'auto'));
+    await step(my, N(4), '.pass[data-p="A"]', 'She picks <b>A</b>. It looks right (same policy, same words), but it is about the <b>wrong dates</b>.', 4200, () => choose('A'), '.pass[data-p="A"]');
+    await step(my, N(5), '#events', 'Behind the scenes, the AI <b>saves every action</b>. Here: "picked A, wrong, a look-alike".', 4500, () => openModel(true), '#modelbtn');
+    await step(my, N(6), '#beliefs', 'From that one pick, it now believes she thinks <b>"similar = evidence"</b> (80%).', 4500);
+    await step(my, N(7), '#policy', 'So it <b>chooses the next move</b>: compare the dates. The odds are saved too, so it can learn later.', 4800);
+    openModel(false); await wait(400);
+    await step(my, N(8), '#contrast', 'The screen changes <b>within a second</b>: her dates next to the question\'s dates.', 4200);
+    await step(my, N(9), '#msgs', 'Waymond adds a short note, <b>1-3 seconds later</b>. Touches are instant; words take a moment.', 4200);
+    await step(my, N(10), '.pass[data-p="B"]', 'She tries again and picks <b>B</b>. Correct. The AI lowers its worry about her mistake.', 4200, () => { $('#tryagain').click(); setTimeout(() => choose('B'), 300); }, '.pass[data-p="B"]');
+    await step(my, N(11), '#view3d', 'Curious, she clicks <b>Go deeper</b>. A 3D view of the whole system opens. She can rotate it and click any part.', 5200, () => quick('deeper'), '#deepBtn');
+    await step(my, N(12), '#reward', '3 days later she gets <b>one new question</b>. If she gets it right, that is the <b>only score the AI learns from</b>. Not watch time, not clicks.', 6000,
+      () => { openModel(true); $('#reward').innerHTML = 'day-3 check: <b class="g">correct → +1</b> · this, not watch time, trains the policy'; log('later', 'day-3 check · picked Q · correct, no hints', 'inst'); });
+    $('#bt').innerHTML = '<b>That\'s the loop:</b> she acts → the AI learns about her → the screen adapts → days later we check it stuck. Now try it yourself.';
+    await wait(6000); endTour();
+  } catch (e) { if (e !== 'stop') console.error(e); }
+}
+$('#tourbtn').onclick = () => touring % 2 === 1 && $('#bubble').style.display === 'block' ? endTour() : tour();
+$('#bskip').onclick = endTour;
+
+
+// ---------------- simulated learners (fake students) ----------------
+$$('#mtabs button').forEach(b => b.onclick = () => {
+  $$('#mtabs button').forEach(x => x.classList.toggle('on', x === b));
+  $('#sim').style.display = b.dataset.tab === 'sim' ? 'block' : 'none'; $('#live').style.display = b.dataset.tab === 'live' ? 'flex' : 'none';
+});
+const HABITS = {   // q1 = which passage; q2 = same idea asked in other words, passages shuffled (the look-alike is no longer first)
+  'thinks similar = evidence': { q1: { A: .8, B: .15, C: .05 }, q2: { 'look-alike': .8, right: .15, first: .05 } },
+  'checks dates': { q1: { A: .08, B: .9, C: .02 }, q2: { 'look-alike': .08, right: .9, first: .02 } },
+  'random clicker': { q1: { A: 1 / 3, B: 1 / 3, C: 1 / 3 }, q2: { 'look-alike': 1 / 3, right: 1 / 3, first: 1 / 3 } },
+  'skims, picks first': { q1: { A: .6, B: .3, C: .1 }, q2: { 'look-alike': .15, right: .15, first: .7 } },
+};
+function rng(seed) { return () => (seed = (seed * 16807) % 2147483647) / 2147483647; }
+function draw(d, R) { let u = R(), c = 0; for (const k in d) { c += d[k]; if (u < c) return k; } return Object.keys(d).pop(); }
+function diagnose(a, b) {
+  let best = null, bp = -1;
+  for (const [hb, p] of Object.entries(HABITS)) { const v = p.q1[a] * (b ? p.q2[b] : 1); if (v > bp) { bp = v; best = hb; } }
+  return best;
+}
+$('#runsim').onclick = async () => {
+  const R = rng(42), names = Object.keys(HABITS), st = {}; names.forEach(n => st[n] = { n: 0, A: 0, d1: 0, d2: 0 });
+  let rows = 0; $('#simlog').innerHTML = '';
+  for (let i = 0; i < 200; i++) {
+    const hb = names[i % names.length], p = HABITS[hb], a = draw(p.q1, R), b = draw(p.q2, R), s = st[hb];
+    s.n++; if (a === 'A') s.A++; if (diagnose(a) === hb) s.d1++; if (diagnose(a, b) === hb) s.d2++;
+    rows += 9;
+    if (i < 12 || i % 25 === 0) { $('#simlog').insertAdjacentHTML('afterbegin', `<div>bot #${i + 1} [${hb}] → Q1: ${a} · Q2: ${b}</div>`); await wait(45); }
+  }
+  log('trace', 'ran 200 simulated learners', 'inst');
+  const pc = (a, b) => Math.round(a / b * 100), P = (n, k) => pc(st[n][k], st[n].n);
+  $('#simout').innerHTML = `<table><tr><th>hidden habit</th><th>picked A</th><th>AI right after Q1</th><th>after Q2</th></tr>` +
+    names.map(n => `<tr><td>${n}</td><td>${P(n, 'A')}%</td><td>${P(n, 'd1')}%</td><td class="a">${P(n, 'd2')}%</td></tr>`).join('') +
+    `</table><p><b>${rows.toLocaleString()} rows of practice data</b>, with zero real users.</p>
+    <p class="dim">What it shows: Q1 alone never catches skimmers (${P('skims, picks first', 'd1')}%). A second question, with the passages shuffled, catches most of them (${P('skims, picks first', 'd2')}%).
+    Random clickers stay hard to read (${P('random clicker', 'd2')}%), so the AI should keep its guess unsure for them instead of acting on it.</p>
+    <p class="dim">This is how the policy learns <b>which question to ask next</b>. Later, real learners tune these fake students so they behave like people.</p>`;
+};
+
+// ---------------- start ----------------
+renderBeliefs();
+goChapter(0, 'auto');
+if (/tour/.test(location.search)) setTimeout(tour, 800);
+$('#msgs').innerHTML = `<div class="m w">Hi! This lesson plays like a video, but you can stop it anywhere. <b>Highlight any text</b> to mark it, note it or ask me. Press <b>▶ Play</b> to start.<span class="tag">waymond · scripted in this mockup</span></div>`;
+</script>
+</body>
+</html>

@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How the AI Learns</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Oswald:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#2b2b29; --panel:#33332f; --line:#4a4a46; --ink:#ecebe6; --dim:#a9a79f; --faint:#7d7b74;
+          --green:#8fc79a; --red:#e58a7b; --blue:#8fb3e5; --amber:#e8c36a; --violet:#d59be0; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:18px; }
+  body { background-image:radial-gradient(#3a3a37 1px, transparent 1px); background-size:22px 22px; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  .mono { font-family:"JetBrains Mono", monospace; } .osw { font-family:"Oswald", sans-serif; }
+  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .dim { color:var(--dim); }
+  .wrap { max-width:1240px; margin:0 auto; padding:26px 24px 60px; }
+  .kick { font-family:"Oswald"; font-size:12px; letter-spacing:.14em; color:var(--faint); }
+  h1 { font-family:"Oswald"; font-size:38px; margin:4px 0 4px; }
+  .sub { color:var(--dim); font-size:20px; margin-bottom:18px; }
+  .bar { display:flex; gap:10px; align-items:center; margin-bottom:14px; flex-wrap:wrap; }
+  .btn { padding:8px 16px; border:1px solid var(--amber); color:var(--amber); border-radius:8px; font-size:16px; background:#2b2b29; }
+  .btn.ghost { border-color:var(--line); color:var(--dim); }
+  #status { font-size:17px; color:var(--dim); }
+
+  /* diagram */
+  #dia { position:relative; width:1190px; height:450px; border:1px solid var(--line); border-radius:14px; background:rgba(43,43,41,.92); }
+  #dia svg { position:absolute; inset:0; pointer-events:none; }
+  .node { position:absolute; width:170px; border:1.5px solid var(--line); border-radius:12px; background:var(--panel); padding:10px 12px; cursor:pointer; transition:border-color .25s, box-shadow .25s, transform .25s; }
+  .node:hover { border-color:#888; }
+  .node.sel { border-color:var(--amber); }
+  .node.lit { border-color:var(--amber); box-shadow:0 0 0 4px #e8c36a33; transform:translateY(-2px); }
+  .node .n { font-family:"Oswald"; font-size:12px; letter-spacing:.1em; color:var(--faint); }
+  .node .t { font-family:"Oswald"; font-size:19px; }
+  .node .p { font-size:15px; color:var(--dim); line-height:1.25; }
+  .node .v { margin-top:6px; font-family:"JetBrains Mono"; font-size:11.5px; line-height:1.45; color:var(--amber); min-height:16px; }
+  .node.io { background:#262624; border-style:dashed; width:130px; }
+  .node.reward { border-color:var(--violet); }
+  .node.reward .t { color:var(--violet); }
+  #token { position:absolute; width:16px; height:16px; border-radius:50%; background:var(--amber); box-shadow:0 0 12px var(--amber); transition:all .7s cubic-bezier(.4,0,.2,1); opacity:0; z-index:5; }
+  .hb { display:flex; align-items:center; gap:4px; } .hb i { display:inline-block; height:6px; background:var(--red); border-radius:3px; }
+
+  /* detail */
+  #detail { margin-top:16px; display:grid; grid-template-columns:1.1fr 1fr; gap:16px; }
+  .card { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:16px 20px; }
+  .card h2 { font-family:"Oswald"; font-weight:500; font-size:24px; margin:0 0 6px; }
+  .plain { font-size:20px; margin-bottom:10px; }
+  dl { margin:0; display:grid; grid-template-columns:120px 1fr; gap:7px 12px; font-size:17px; }
+  dt { font-family:"Oswald"; font-size:13px; letter-spacing:.08em; color:var(--faint); padding-top:3px; }
+  dd { margin:0; }
+  .ex { font-family:"JetBrains Mono"; font-size:13px; background:#262624; border-radius:8px; padding:10px 12px; line-height:1.6; white-space:pre-wrap; }
+  .lad { display:flex; gap:8px; margin-top:6px; }
+  .lad div { flex:1; border:1px solid var(--line); border-radius:8px; padding:8px 10px; font-size:15px; }
+  .lad div b { font-family:"Oswald"; font-weight:500; display:block; font-size:12px; letter-spacing:.08em; color:var(--faint); }
+
+  /* bottom */
+  #bottom { margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .loop { display:flex; gap:8px; align-items:stretch; }
+  .loop div { flex:1; border:1px solid var(--line); border-radius:10px; padding:10px; font-size:16px; text-align:center; transition:all .3s; }
+  .loop div.lit { border-color:var(--amber); background:#3b372b; }
+  .loop span { align-self:center; color:var(--faint); }
+  .rule { margin-top:10px; font-size:18px; }
+  table { width:100%; border-collapse:collapse; font-size:15.5px; }
+  td, th { border-bottom:1px solid #3d3d39; padding:6px 6px; text-align:left; vertical-align:top; }
+  th { font-family:"Oswald"; font-weight:500; font-size:12px; letter-spacing:.08em; color:var(--faint); }
+  details.more summary { cursor:pointer; color:var(--amber); font-size:16px; margin-top:10px; list-style:none; }
+  details.more summary::before { content:'＋ '; } details.more[open] summary::before { content:'− '; }
+  details.more.big summary { font-family:"Oswald"; font-size:20px; padding:12px 18px; border:1px solid var(--line); border-radius:12px; background:var(--panel); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kick">AMBITION · ADAPTIVE LESSON · UNDER THE HOOD</div>
+  <h1>How the AI learns</h1>
+  <div class="sub">Six parts. Click any box to see what it is, what goes in, what comes out, and how it gets better.</div>
+  <div class="bar">
+    <button class="btn" id="play">▶ Follow Priya's wrong pick</button>
+    <button class="btn ghost" id="reset">↺ Reset</button>
+    <span id="status">Priya is on "Pick evidence". She is about to drag passage A.</span>
+  </div>
+
+  <div id="dia">
+    <svg width="1190" height="450" viewBox="0 0 1190 450">
+      <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#6d6b65"/></marker>
+            <marker id="arv" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#d59be0"/></marker></defs>
+      <g stroke="#6d6b65" stroke-width="2" fill="none" marker-end="url(#ar)">
+        <path d="M150,175 L196,175"/>
+        <path d="M376,175 C410,175 410,70 436,70"/><path d="M376,175 L436,175"/><path d="M376,175 C410,175 410,280 436,280"/>
+        <path d="M616,70 C650,70 650,175 676,175"/><path d="M616,175 L676,175"/><path d="M616,280 C650,280 650,175 676,175"/>
+        <path d="M856,175 L896,175"/><path d="M1036,175 L1056,175"/>
+      </g>
+      <g stroke="#d59be0" stroke-width="2" fill="none" stroke-dasharray="6 5" marker-end="url(#arv)" id="fb">
+        <path d="M600,405 L540,405 L540,338"/><path d="M640,405 L720,405 L720,232"/><path d="M600,405 C560,405 545,380 545,338" opacity="0"/>
+        <path d="M610,385 C590,360 560,350 560,128" opacity="0"/>
+      </g>
+      <text x="740" y="420" fill="#d59be0" font-family="EB Garamond" font-size="15">trains ③ ④ ⑤ every night</text>
+    </svg>
+
+    <div class="node io" data-k="events" style="left:20px;top:132px"><div class="n">IN</div><div class="t">Her actions</div><div class="p">clicks, picks, highlights, questions</div><div class="v" id="v-events"></div></div>
+    <div class="node" data-k="features" style="left:200px;top:120px"><div class="n">①</div><div class="t">Features</div><div class="p">turn actions into numbers</div><div class="v" id="v-features"></div></div>
+    <div class="node" data-k="habit" style="left:440px;top:14px"><div class="n">②</div><div class="t">Habit detector</div><div class="p">which wrong idea?</div><div class="v" id="v-habit"></div></div>
+    <div class="node" data-k="skill" style="left:440px;top:120px"><div class="n">③</div><div class="t">Skill model</div><div class="p">right on day 3?</div><div class="v" id="v-skill"></div></div>
+    <div class="node" data-k="memory" style="left:440px;top:226px"><div class="n">④</div><div class="t">Memory model</div><div class="p">how fast she forgets</div><div class="v" id="v-memory"></div></div>
+    <div class="node" data-k="chooser" style="left:680px;top:110px"><div class="n">⑤</div><div class="t">Chooser</div><div class="p">what to show next</div><div class="v" id="v-chooser"></div></div>
+    <div class="node" data-k="words" style="left:900px;top:120px;width:140px"><div class="n">⑥</div><div class="t">Words</div><div class="p">Waymond's 1-2 lines</div><div class="v" id="v-words"></div></div>
+    <div class="node io" data-k="screen" style="left:1060px;top:132px;width:116px"><div class="n">OUT</div><div class="t">Screen</div><div class="v" id="v-screen"></div></div>
+    <div class="node reward" data-k="reward" style="left:520px;top:350px;width:220px;padding:8px 12px"><div class="n">REWARD</div><div class="t">Day-3 result</div><div class="p">new question, on her own</div><div class="v" id="v-reward" style="color:var(--violet)"></div></div>
+    <div id="token"></div>
+  </div>
+
+  <div id="detail">
+    <div class="card" id="dcard"></div>
+    <div class="card" id="dex"></div>
+  </div>
+
+  <div id="bottom">
+    <div class="card">
+      <h2>Every night</h2>
+      <div class="loop" id="loop">
+        <div>1 · attach new day-3 results to the sessions they came from</div><span>→</span>
+        <div>2 · retrain ③, update ④ and ⑤</div><span>→</span>
+        <div>3 · test on held-out learners and fake students</div><span>→</span>
+        <div>4 · release only if more people get day 3 right</div>
+      </div>
+      <div class="rule">Never trained on: <span class="r">watch time · clicks · right-after answers</span></div>
+    </div>
+    <div class="card">
+      <h2>How it grows</h2>
+      <table>
+        <tr><th>WHEN</th><th>SKILL ③</th><th>CHOOSER ⑤</th></tr>
+        <tr><td>Day 1 · 0 users</td><td>rules + fake-student tests</td><td>our rules, one decision tried at random</td></tr>
+        <tr><td>Hundreds of learners</td><td>logistic regression</td><td>Thompson sampling per habit</td></tr>
+        <tr><td>Millions of events</td><td>transformer over her history</td><td>offline RL: plans the whole lesson</td></tr>
+      </table>
+      <div class="rule dim" style="font-size:16px">Each upgrade must beat the one before it on the day-3 test.</div>
+    </div>
+  </div>
+
+  <details class="more big" style="margin-top:16px"><summary>The models and the research behind them</summary>
+  <div id="research" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <h2>What we start with</h2>
+      <div class="dim" style="font-size:16px;margin-bottom:8px">Simple, proven models. Each one has run in production or a published trial.</div>
+      <table>
+        <tr><th>PART</th><th>MODEL</th><th>WHY / WHO USED IT</th></tr>
+        <tr><td>② Habit</td><td>Bayesian update over written habits</td><td>Works with no data; misconceptions as "wrong rules" (WatChat, MIT 2024)</td></tr>
+        <tr><td>③ Skill</td><td>Logistic regression + features</td><td>Beats deep models on small/medium data (Gervet 2020, 9 datasets); Duolingo Birdbrain</td></tr>
+        <tr><td>④ Memory</td><td>Half-life regression, per person</td><td>Duolingo HLR (2016); personalized review +16.5% retention (Lindsey 2014)</td></tr>
+        <tr><td>⑤ Chooser</td><td>Rules + Thompson sampling on one decision</td><td>Thompson sampling chose explanations in the AXIS study, tested with 524 people (Williams 2016)</td></tr>
+        <tr><td>⑥ Words</td><td>Fast LLM, numbers checked by code</td><td>LLMs are weak learner models (Hooshyar 2025), so they only write words</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Where we double down later</h2>
+      <div class="dim" style="font-size:16px;margin-bottom:8px">Once there is real data, we spend research time here. Each one goes live only if day-3 results improve.</div>
+      <table>
+        <tr><th>AREA</th><th>MODELS TO RESEARCH</th><th>NEEDS</th></tr>
+        <tr><td>Reading her history</td><td>LSTM (DKT 2015) → attention (SAKT, AKT) → transformer (SAINT+, Riiid: 784k students)</td><td>millions of events</td></tr>
+        <tr><td>Rich actions</td><td>models that read figure use, not just answers (Käser 2020; multi-activity tracing, EDM 2024)</td><td>logged 3D / drag / highlight data</td></tr>
+        <tr><td>Planning a whole lesson</td><td>offline RL: IQL, CQL (Zhou 2019, 180 students; Mandel 2014, 2,000 students)</td><td>saved sessions with logged odds</td></tr>
+        <tr><td>Better wording</td><td>RL-tuned tutor vs simulated students (Dinucu-Jianu 2025)</td><td>trustworthy simulators</td></tr>
+        <tr><td>Better fake students</td><td>simulators trained on real sessions ("world models" for learners)</td><td>first real pilot data</td></tr>
+      </table>
+    </div>
+  </div>
+  </details>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const D = {
+  events: { name: 'Her actions (the input)', plain: 'Everything Priya does on the lesson screen is recorded as a small event.',
+    model: 'none', input: 'clicks, drags, highlights, notes, questions to Waymond, play/pause/rewind, 3D opens, level setting', output: 'a list of timestamped events',
+    trained: '-', v1: 'log semantic actions, not mouse paths', v3: 'same', ex: `12.4s  pick_passage A
+13.1s  highlight "on or after 1 June" as Question
+21.0s  ask Waymond "why did A look right?"
+40.2s  open Retrieve box in 3D` },
+  features: { name: '① Features', plain: 'Turns her actions into a row of numbers a model can read.',
+    model: 'none, plain code', input: 'the event list', output: 'one row of numbers per moment',
+    trained: '-', v1: '~20 hand-picked numbers', v3: 'learned summaries of the event sequence', ex: `wrong_picks         = 1
+picked_lookalike    = 1
+time_to_pick_sec    = 12.4
+question_highlights = 1
+boxes_opened_3d     = 0
+asks                = 0
+level               = Everyday
+days_since_lesson   = 0` },
+  habit: { name: '② Habit detector', plain: 'Guesses which wrong idea she has, from what she picked.',
+    model: 'Bayesian update: start with a guess for each habit, update it with every clue',
+    input: 'her picks and check answers', output: 'odds for each habit',
+    trained: 'needs almost no data: each habit is a tiny program that predicts what that kind of person would pick',
+    v1: '4-6 habits written by us', v3: 'new habits found by clustering real mistakes', ex: `before:  similar=evidence 25%  checks-dates 25%
+         skims 25%            random 25%
+clue:    picked A (the look-alike)
+after:   similar=evidence 80%  skims 10%
+         random 5%            checks-dates 5%` },
+  skill: { name: '③ Skill model', plain: 'Predicts: will she get a NEW question right, on her own, on day 3?',
+    model: 'v1: logistic regression (a simple formula that weighs each number and gives a probability)',
+    input: 'features ① + habit odds ② + days since the lesson', output: 'a probability, e.g. 0.42',
+    trained: 'real day-3 answers. Each night it re-weighs the numbers.',
+    v1: 'logistic regression (works with hundreds of learners)', v3: 'transformer reading her whole history, like SAINT+ (needs millions of events)', ex: `P(right on day 3) =
+  base                     +0.20
+  picked look-alike        -0.35
+  highlighted the dates    +0.10
+  ...
+  → 0.42` },
+  memory: { name: '④ Memory model', plain: 'Learns how fast THIS person forgets, so we ask again at the right time.',
+    model: 'hierarchical Bayes: everyone starts at the average, then it adjusts for each person',
+    input: 'past day-2/3/6 results for her, plus everyone else', output: 'her forgetting speed → when to send the check-in',
+    trained: 'every check-in result. Evidence: personalized review +16.5% retention (Lindsey 2014).',
+    v1: 'one forgetting speed per person', v3: 'per person and per topic', ex: `new learner:  average speed  → check on day 3
+fast forgetter after 3 checks → day 2
+slow forgetter after 3 checks → day 6` },
+  chooser: { name: '⑤ Chooser (the policy)', plain: 'Picks what to show next. Mostly the best-known option, sometimes another, so it keeps learning.',
+    model: 'v1: our rules + Thompson sampling on one decision (keep a score per option, mostly pick the best, sometimes try another)',
+    input: 'habit odds ② + skill ③ + level', output: 'one move + the odds it was chosen (saved)',
+    trained: 'day-3 results attached to the move it chose',
+    v1: 'rules + one randomized decision per lesson', v3: 'offline RL: learns whole lesson paths from saved sessions, tested on old data first', ex: `for "similar = evidence" people (example numbers):
+  dates side by side   47/70 right on day 3   ← chosen, p=0.66
+  worked example       31/62
+  open 3D view         12/25
+  move on               5/20
+next question: the one that best separates the habits` },
+  words: { name: '⑥ Words', plain: 'Waymond writes 1-2 sentences for the chosen move.',
+    model: 'a fast LLM (e.g. Claude Haiku, Gemini Flash)', input: 'the chosen move + the true facts', output: '1-2 sentences, 1-3 s',
+    trained: 'not by the reward at first; later tuned against fake students',
+    v1: 'prompted, numbers checked by code', v3: 'small model fine-tuned on what worked', ex: `move:  dates side by side
+facts: A = before 1 June, question = on or after 1 June
+→ "You picked A. Fair: it shares almost every word.
+   Look at the dates though."` },
+  screen: { name: 'The screen (the output)', plain: 'What Priya sees change, within a second.', model: 'none, plain code draws it', input: 'the move', output: 'the next screen',
+    trained: '-', v1: '-', v3: '-', ex: `her dates   | question's dates
+before 1 June | on or after 1 June` },
+  reward: { name: 'The reward: day-3 result', plain: 'The only score the AI learns from: a new question, right, on her own, days later.',
+    model: '-', input: 'a question picked at random by a separate system (the AI cannot make it easy)', output: '1 = right, 0 = wrong, missing = never came back',
+    trained: 'feeds ③ ④ ⑤ every night', v1: 'one question, 60 seconds', v3: 'plus later lessons that reuse the idea', ex: `day 3: "Can I bring my partner on the trip?"
+she picks the real rule, not the "partners" word trap
+→ reward = 1` },
+};
+function show(k) {
+  $$('.node').forEach(n => n.classList.toggle('sel', n.dataset.k === k));
+  const d = D[k];
+  $('#dcard').innerHTML = `<h2>${d.name}</h2><div class="plain">${d.plain}</div>
+    <dl><dt>GOES IN</dt><dd>${d.input}</dd><dt>COMES OUT</dt><dd>${d.output}</dd></dl>
+    <details class="more"><summary>More detail</summary>
+    <dl style="margin-top:8px"><dt>MODEL</dt><dd>${d.model}</dd><dt>LEARNS FROM</dt><dd>${d.trained}</dd></dl>
+    <div class="lad"><div><b>VERSION 1</b>${d.v1}</div><div><b>LATER</b>${d.v3}</div></div></details>`;
+  $('#dex').innerHTML = `<h2>Example: Priya</h2><div class="ex">${d.ex}</div>`;
+}
+$$('.node').forEach(n => n.onclick = () => show(n.dataset.k));
+show('habit');
+
+// ---------- follow one action through the system ----------
+const wait = ms => new Promise(r => setTimeout(r, ms));
+let run = 0;
+function tokenTo(k) {
+  const n = $(`.node[data-k="${k}"]`), t = $('#token');
+  t.style.opacity = 1; t.style.left = (n.offsetLeft + n.offsetWidth / 2 - 8) + 'px'; t.style.top = (n.offsetTop - 10) + 'px';
+}
+function lit(k, on = true) { $(`.node[data-k="${k}"]`).classList.toggle('lit', on); }
+function reset() {
+  run++; $$('.node').forEach(n => n.classList.remove('lit')); $$('.v').forEach(v => v.innerHTML = ''); $('#token').style.opacity = 0;
+  $$('#loop div').forEach(d => d.classList.remove('lit')); $('#status').textContent = 'Priya is on "Pick evidence". She is about to drag passage A.';
+}
+async function play() {
+  reset(); const my = run; const ok = () => my === run;
+  const stepTo = async (k, html, status, ms = 2200) => { if (!ok()) throw 0; tokenTo(k); lit(k); show(k); $('#v-' + k).innerHTML = html; $('#status').innerHTML = status; await wait(ms); lit(k, false); };
+  try {
+    await stepTo('events', 'pick_passage A<br>12.4 s', 'She drags <b>A</b>, the look-alike, into the request.');
+    await stepTo('features', 'picked_lookalike=1<br>time_to_pick=12.4', 'Plain code turns that into numbers.');
+    await stepTo('habit', 'similar=evidence <b>80%</b>', 'The habit detector updates: she probably thinks "similar = evidence".');
+    await stepTo('skill', 'P(day 3 right) = <b>0.42</b>', 'The skill model predicts she would likely get a new question wrong.');
+    await stepTo('memory', 'average forgetter<br>→ check on day 3', 'New learner, so the memory model starts at the average.');
+    await stepTo('chooser', '▶ dates side by side<br>p = 0.66 (saved)', 'The chooser picks the move that worked best for people like her, and saves the odds.', 2600);
+    await stepTo('words', '"Look at the dates."', 'Waymond writes one short line. 1-3 seconds.');
+    await stepTo('screen', 'before 1 June<br>vs on or after', 'Her screen changes: her dates next to the question\'s dates.');
+    if (!ok()) throw 0;
+    $('#status').innerHTML = '<span class="dim">⏳ 3 days later...</span>'; $('#token').style.opacity = 0; await wait(1500);
+    await stepTo('reward', 'new question: <b>right ✓</b> → 1', '3 days later she gets a new question right, on her own. <b>That is the reward.</b>', 2400);
+    lit('reward'); $('#fb').style.strokeWidth = 3.5;
+    for (const [i, d] of $$('#loop div').entries()) { if (!ok()) throw 0; d.classList.add('lit'); $('#status').innerHTML = 'That night: ' + d.textContent; await wait(1300); }
+    lit('skill'); lit('memory'); lit('chooser');
+    $('#v-chooser').innerHTML = '▶ dates side by side<br><b>47/70 → 48/71</b>';
+    $('#v-skill').innerHTML = 'weights updated';
+    $('#v-memory').innerHTML = 'Priya: normal forgetter';
+    $('#status').innerHTML = '<b>The chooser now trusts "dates side by side" a little more</b> for the next person like Priya.';
+    show('chooser');
+  } catch (e) {}
+}
+$('#play').onclick = play; $('#reset').onclick = reset;
+if (/play/.test(location.search)) setTimeout(play, 600);
+</script>
+</body>
+</html>

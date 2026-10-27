@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Before Real Learners</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Oswald:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#2b2b29; --panel:#33332f; --line:#4a4a46; --ink:#ecebe6; --dim:#a9a79f; --faint:#7d7b74;
+          --green:#8fc79a; --red:#e58a7b; --blue:#8fb3e5; --amber:#e8c36a; --violet:#d59be0; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:19px; }
+  body { background-image:radial-gradient(#3a3a37 1px, transparent 1px); background-size:22px 22px; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
+  .mono { font-family:"JetBrains Mono", monospace; } .osw { font-family:"Oswald", sans-serif; }
+  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .dim { color:var(--dim); }
+  .wrap { max-width:1180px; margin:0 auto; padding:26px 24px 60px; }
+  .kick { font-family:"Oswald"; font-size:12px; letter-spacing:.14em; color:var(--faint); }
+  h1 { font-family:"Oswald"; font-size:38px; margin:4px 0 4px; }
+  .sub { color:var(--dim); font-size:21px; margin-bottom:20px; }
+
+  #steps { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .st { flex:1; border:1.5px solid var(--line); border-radius:12px; background:var(--panel); padding:12px 14px; text-align:left; transition:all .25s; }
+  .st .n { font-family:"Oswald"; font-size:12px; letter-spacing:.1em; color:var(--faint); }
+  .st .t { font-family:"Oswald"; font-size:19px; }
+  .st .p { font-size:15px; color:var(--dim); }
+  .st.on { border-color:var(--amber); background:#3b372b; }
+  .arr { color:var(--faint); font-size:22px; }
+  #loopnote { text-align:right; font-size:15px; color:var(--violet); margin:-8px 0 12px; }
+
+  .panel { display:none; border:1px solid var(--line); border-radius:14px; background:rgba(51,51,47,.95); padding:20px 24px; }
+  .panel.on { display:block; }
+  .panel h2 { font-family:"Oswald"; font-weight:500; font-size:26px; margin:0 0 4px; }
+  .lead { font-size:21px; margin-bottom:14px; }
+  .row { display:flex; gap:14px; flex-wrap:wrap; }
+  .box { border:1px solid var(--line); border-radius:10px; background:#2d2d2b; padding:12px 14px; flex:1; min-width:220px; }
+  .box h4 { margin:0 0 4px; font-family:"Oswald"; font-weight:500; font-size:15px; letter-spacing:.05em; color:var(--dim); }
+  .btn { padding:8px 16px; border:1px solid var(--amber); color:var(--amber); border-radius:8px; font-size:16px; margin-top:12px; }
+  .tagok { color:var(--green); font-family:"JetBrains Mono"; font-size:13px; } .tagno { color:var(--red); font-family:"JetBrains Mono"; font-size:13px; }
+  .var { opacity:0; transform:translateY(6px); transition:all .4s; }
+  .var.in { opacity:1; transform:none; }
+  .bot { cursor:pointer; text-align:center; flex:1; min-width:150px; border:1.5px solid var(--line); border-radius:12px; padding:10px; background:#2d2d2b; }
+  .bot.on { border-color:var(--amber); }
+  .bot .f { font-size:34px; }
+  .turns { font-family:"JetBrains Mono"; font-size:13.5px; line-height:1.7; background:#262624; border-radius:10px; padding:12px 14px; margin-top:12px; min-height:150px; white-space:pre-wrap; }
+  table { width:100%; border-collapse:collapse; font-size:16px; }
+  td, th { border-bottom:1px solid #3d3d39; padding:6px; text-align:left; }
+  th { font-family:"Oswald"; font-weight:500; font-size:12px; letter-spacing:.08em; color:var(--faint); }
+  .gate { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #3d3d39; font-size:18px; }
+  .gate .ic { width:26px; text-align:center; }
+  .hbar { height:12px; border-radius:6px; display:inline-block; vertical-align:middle; }
+  details.more summary { cursor:pointer; color:var(--amber); font-size:16px; margin-top:16px; list-style:none; }
+  details.more summary::before { content:'＋ '; } details.more[open] summary::before { content:'− '; }
+  details.more .in { margin-top:8px; font-size:17px; color:var(--ink); line-height:1.45; }
+  details.more li { margin:4px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="kick">AMBITION · ADAPTIVE LESSON · BEFORE REAL LEARNERS</div>
+  <h1>Bootstrapping: a practice world first</h1>
+  <div class="sub">On day one, the AI has never met a learner. So we build a practice world, test the AI in it, then bring in real people, starting small.</div>
+
+  <div id="steps">
+    <button class="st on" data-s="0"><div class="n">STEP 1</div><div class="t">Make lessons</div><div class="p">write one, AI makes more</div></button><span class="arr">→</span>
+    <button class="st" data-s="1"><div class="n">STEP 2</div><div class="t">Fake students</div><div class="p">robots with one habit</div></button><span class="arr">→</span>
+    <button class="st" data-s="2"><div class="n">STEP 3</div><div class="t">Test the AI</div><div class="p">pass the checks first</div></button><span class="arr">→</span>
+    <button class="st" data-s="3"><div class="n">STEP 4</div><div class="t">Real people</div><div class="p">5, then 60</div></button><span class="arr">→</span>
+    <button class="st" data-s="4"><div class="n">STEP 5</div><div class="t">Fix the fakes</div><div class="p">match real people</div></button>
+  </div>
+  <div id="loopnote">↻ then repeat, with better fake students each round</div>
+
+  <!-- STEP 1 -->
+  <section class="panel on" data-p="0">
+    <h2>1 · Make lessons</h2>
+    <div class="lead">We write one lesson by hand. AI writes many more. <b>Code checks every one.</b></div>
+    <div class="row">
+      <div class="box"><h4>THE RECIPE (written once)</h4>
+        a question<br><span class="g">✓ one right passage</span> (matches the details)<br><span class="a">⚠ one look-alike</span> (same words, wrong details)<br><span class="dim">○ one off-topic passage</span></div>
+      <div class="box" style="flex:2"><h4>AI-MADE VERSIONS</h4><div id="vars" class="dim">Click the button to make some.</div></div>
+    </div>
+    <button class="btn" id="genbtn">✦ Make 3 new lessons</button>
+    <details class="more"><summary>More detail</summary><div class="in">
+      <ul><li>The lesson is stored as data the code understands: question, right answer, trap, off-topic.</li>
+      <li>A big AI model writes new versions on other topics (refunds, leave, shipping).</li>
+      <li>Code rejects any version where the trap is not really wrong, or the right answer is not really right.</li>
+      <li>Result: hundreds of checked lessons, all with the same shape, so every trap means the same thing.</li></ul></div></details>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="panel" data-p="1">
+    <h2>2 · Fake students</h2>
+    <div class="lead">Each fake student is a small program with <b>one habit</b>. It picks, reacts to the tutor, and sometimes forgets. Click one to watch it.</div>
+    <div class="row" id="bots"></div>
+    <div class="turns" id="turns">Pick a fake student above.</div>
+    <button class="btn" id="runall">▶ Run 200 fake students through the lesson</button>
+    <div id="runout" style="margin-top:10px"></div>
+    <details class="more"><summary>More detail</summary><div class="in">
+      <ul><li><b>Habit:</b> what it tends to pick (e.g. the look-alike 80% of the time).</li>
+      <li><b>Reaction:</b> how it changes after each tutor move (e.g. "dates side by side" fixes the look-alike habit 6 times in 10, a plain "wrong" only 2 in 10).</li>
+      <li><b>Noise:</b> slow answers, misclicks, leaving halfway, forgetting by day 3.</li>
+      <li><b>Words:</b> an AI writes its chat questions only. It never decides the picks, because AI-played students tend to fix their own mistakes.</li></ul></div></details>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="panel" data-p="2">
+    <h2>3 · Test the AI before anyone sees it</h2>
+    <div class="lead">Every new version of the AI must pass these checks on the fake students. Like a driving test.</div>
+    <div id="gates"></div>
+    <div class="dim" style="font-size:15px;margin-top:6px">Habit numbers come from our fake-student run; the rest are example results.</div>
+    <button class="btn" id="gatebtn">▶ Run the checks</button>
+    <details class="more"><summary>More detail</summary><div class="in">
+      <ul><li>Checks run on every change, like software tests.</li>
+      <li>Later, the same checks also run on <b>saved real sessions</b>. Because every move was logged with its odds, we can estimate how a new AI would have done.</li>
+      <li>Passing here only means "not broken". It does not prove people learn. Only step 4 does.</li></ul></div></details>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="panel" data-p="3">
+    <h2>4 · Real people, small first</h2>
+    <div class="lead">Fake students show the AI isn't broken. <b>Only real people show it teaches.</b></div>
+    <div class="row">
+      <div class="box"><h4>WEEK 2-3 · 5 PEOPLE, 3 ROUNDS</h4>They think out loud while using it. We fix anything confusing.</div>
+      <div class="box"><h4>WEEK 3-5 · 60 PAID LEARNERS</h4>Half get the adaptive lesson, half the normal one.</div>
+      <div class="box"><h4>3-5 DAYS LATER</h4>One new question each. Who remembers more?</div>
+    </div>
+    <div style="margin-top:14px;font-size:18px">Same design as Google's <b>Learn Your Way</b> study (60 students): <b class="g">78%</b> vs <b>67%</b> remembered after 3-5 days.</div>
+    <details class="more"><summary>More detail</summary><div class="in">
+      <ul><li>Recruit through a paid panel (e.g. Prolific), people new to RAG.</li>
+      <li>The day-3 question is picked at random by a separate system, so neither version can make it easy.</li>
+      <li>People who don't come back are counted as missing, not as a pass.</li></ul></div></details>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="panel" data-p="4">
+    <h2>5 · Fix the fake students</h2>
+    <div class="lead">Now we compare fake students to real ones. <b>We keep the fakes that act like people</b> and fix the rest.</div>
+    <table id="cmp"><tr><th>WHAT THEY DO</th><th>REAL PEOPLE</th><th>FAKE STUDENTS</th><th></th></tr></table>
+    <div class="dim" style="font-size:16px;margin-top:6px">Example numbers, to show the idea.</div>
+    <div style="margin-top:12px;font-size:18px">Then we go back to step 2 with better fakes, and run again. Each round, the practice world gets closer to real life.</div>
+    <details class="more"><summary>More detail</summary><div class="in">
+      <ul><li>Waymo does this for self-driving: it scores fake drivers by how well they match real logged driving, and keeps the best.</li>
+      <li>Alibaba built fake shoppers from real logs (Virtual-Taobao). Testing on them first led to more than 2% more revenue live.</li>
+      <li>AI-played shoppers in one study behaved far more alike than real people, which is why our habits are written as code.</li></ul></div></details>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+$$('.st').forEach(b => b.onclick = () => {
+  $$('.st').forEach(x => x.classList.toggle('on', x === b));
+  $$('.panel').forEach(p => p.classList.toggle('on', p.dataset.p === b.dataset.s));
+});
+
+// ---- step 1: AI-made lessons, checked by code ----
+const VARS = [
+  { q: 'Refund window for orders placed after 1 March?', right: 'Orders placed on or after 1 March: 30-day refunds.', trap: 'Orders placed before 1 March: 14-day refunds.', ok: true },
+  { q: 'How many leave days in your second year?', right: 'From year two: 25 days of leave.', trap: 'In year one: 20 days of leave.', ok: true },
+  { q: 'Shipping cost for orders over $50?', right: 'Orders over $50 ship free.', trap: 'All orders over $50 ship free, worldwide.', ok: false, why: 'the "trap" also answers the question, so it is not really wrong' },
+];
+$('#genbtn').onclick = async () => {
+  $('#vars').innerHTML = '';
+  for (const v of VARS) {
+    const d = document.createElement('div'); d.className = 'var'; d.style.margin = '6px 0 10px';
+    d.innerHTML = `<b>"${v.q}"</b><br><span class="g">✓</span> ${v.right}<br><span class="a">⚠</span> ${v.trap}<br>` +
+      (v.ok ? `<span class="tagok">code check: passed ✓</span>` : `<span class="tagno">code check: rejected ✗ (${v.why})</span>`);
+    $('#vars').appendChild(d); await wait(80); d.classList.add('in'); await wait(700);
+  }
+};
+
+// ---- step 2: fake students ----
+const BOTS = {
+  'Look-alike': { f: '🤖', habit: 'picks the look-alike', pick: { A: .8, B: .15, C: .05 }, fix: { dates: .6, wrong: .2 }, keep: .7 },
+  'Date checker': { f: '🤖', habit: 'checks the details', pick: { A: .08, B: .9, C: .02 }, fix: { dates: .95, wrong: .9 }, keep: .9 },
+  'Skimmer': { f: '🤖', habit: 'picks the first one', pick: { A: .6, B: .3, C: .1 }, fix: { dates: .4, wrong: .3 }, keep: .5 },
+  'Random': { f: '🤖', habit: 'clicks anything', pick: { A: 1 / 3, B: 1 / 3, C: 1 / 3 }, fix: { dates: .33, wrong: .33 }, keep: .33 },
+  'Quitter': { f: '🤖', habit: 'leaves halfway', pick: { A: .5, B: .4, C: .1 }, fix: { dates: .5, wrong: .3 }, keep: .5, quits: .6 },
+};
+$('#bots').innerHTML = Object.entries(BOTS).map(([n, b]) => `<button class="bot" data-b="${n}"><div class="f">${b.f}</div><b>${n}</b><div class="dim" style="font-size:15px">${b.habit}</div></button>`).join('');
+let seed = 7; const R = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const draw = d => { let u = R(), c = 0; for (const k in d) { c += d[k]; if (u < c) return k; } return 'C'; };
+$$('.bot').forEach(el => el.onclick = async () => {
+  $$('.bot').forEach(x => x.classList.toggle('on', x === el));
+  const n = el.dataset.b, b = BOTS[n], T = $('#turns'); T.textContent = '';
+  const say = async s => { T.textContent += s + '\n'; await wait(650); };
+  await say(`${n} starts the lesson.  (hidden habit: ${b.habit})`);
+  const p = draw(b.pick);
+  await say(`Turn 1 · picks passage ${p}  ${p === 'B' ? '→ right' : p === 'A' ? '→ wrong (look-alike)' : '→ wrong (off-topic)'}`);
+  if (b.quits && R() < b.quits) { await say('Turn 2 · leaves the lesson.  (logged: where it quit)'); return; }
+  let learned = p === 'B';
+  if (p === 'B') { await say('Tutor   · "Right." moves on'); }
+  else {
+    await say('Tutor   · shows the dates side by side');
+    const fixed = R() < b.fix.dates; learned = fixed;
+    await say(`Turn 2 · ${fixed ? 'picks B → right (the move helped)' : 'picks A again → still wrong'}`);
+  }
+  await say('⏳ 3 days later');
+  const day3 = R() < (learned ? b.keep : .15);
+  await say(`Day 3  · new question: ${day3 ? 'right ✓ (reward 1)' : learned ? 'wrong ✗ (reward 0, forgot)' : 'wrong ✗ (reward 0, never got it)'}`);
+  await say('→ saved as one practice session, same format as a real one');
+});
+$('#runall').onclick = () => {
+  let s = 0, fixed = 0, wrong1 = 0, quit = 0; seed = 42;
+  const names = Object.keys(BOTS);
+  for (let i = 0; i < 200; i++) {
+    const b = BOTS[names[i % names.length]], p = draw(b.pick); s++;
+    if (b.quits && R() < b.quits) { quit++; continue; }
+    if (p !== 'B') { wrong1++; if (R() < b.fix.dates) fixed++; }
+  }
+  $('#runout').innerHTML = `<b>200 practice sessions made in under a second.</b> ${wrong1} first picks were wrong; the tutor's "dates side by side" fixed ${fixed} of them. ${quit} quit halfway. <span class="dim">Overnight, this scales to thousands.</span>`;
+};
+
+// ---- step 3: checks ----
+const GATES = [
+  ['Spots each habit correctly', 'look-alike 88% · date checker 79% · skimmer 63% · random 34%', 'pass', 'Random clickers are hard to read, so the AI must stay unsure about them, not act.'],
+  ['Never shows the answer before she picks', '0 leaks in 200 sessions', 'pass', ''],
+  ['Picks a sensible next screen for each habit', 'look-alike → dates side by side · skimmer → shuffled question', 'pass', ''],
+  ['Doesn\'t annoy people who already know it', 'date checkers skip ahead after 1 right pick', 'pass', ''],
+  ['Waymond\'s numbers match the code', 'every number checked', 'pass', ''],
+];
+$('#gates').innerHTML = GATES.map((g, i) => `<div class="gate" id="g${i}"><span class="ic dim">○</span><span style="flex:1"><b>${g[0]}</b><br><span class="dim" style="font-size:15px" id="gd${i}"></span></span></div>`).join('');
+$('#gatebtn').onclick = async () => {
+  for (const [i, g] of GATES.entries()) {
+    $(`#g${i} .ic`).innerHTML = '<span class="a">…</span>'; await wait(600);
+    $(`#g${i} .ic`).innerHTML = '<span class="g">✓</span>'; $(`#gd${i}`).innerHTML = g[1] + (g[3] ? ` <span class="a">· ${g[3]}</span>` : '');
+  }
+};
+
+// ---- step 5: compare ----
+const CMP = [['pick the look-alike first', 41, 44, true], ['fixed by "dates side by side"', 52, 60, true], ['quit halfway', 22, 12, false], ['right on day 3', 58, 61, true]];
+$('#cmp').insertAdjacentHTML('beforeend', CMP.map(([t, real, fake, ok]) => `<tr><td>${t}</td>
+  <td><span class="hbar" style="width:${real * 2}px;background:var(--blue)"></span> ${real}%</td>
+  <td><span class="hbar" style="width:${fake * 2}px;background:var(--amber)"></span> ${fake}%</td>
+  <td>${ok ? '<span class="g">✓ close</span>' : '<span class="r">✗ fakes quit too little → fix</span>'}</td></tr>`).join(''));
+</script>
+</body>
+</html>

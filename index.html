@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adaptive Interactive Lessons</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#2b2b29; --panel:#33332f; --line:#4a4a46; --ink:#ecebe6; --dim:#a9a79f; --faint:#7d7b74;
+          --green:#8fc79a; --red:#e58a7b; --blue:#8fb3e5; --amber:#e8c36a; --violet:#d59be0; }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:20px; line-height:1.5; }
+  body { background-image:radial-gradient(#353532 1px, transparent 1px); background-size:22px 22px; }
+  a { color:var(--amber); }
+  .mono { font-family:"JetBrains Mono", monospace; font-size:.8em; }
+  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .dim { color:var(--dim); }
+
+  nav { position:fixed; left:0; top:0; bottom:0; width:230px; padding:28px 20px; border-right:1px solid #3a3a37; background:#262624; overflow-y:auto; }
+  nav .logo { font-family:"Oswald"; font-size:14px; letter-spacing:.14em; color:var(--faint); margin-bottom:18px; }
+  nav a { display:block; color:var(--dim); text-decoration:none; font-size:17px; padding:5px 8px; border-radius:6px; }
+  nav a:hover, nav a.on { color:var(--ink); background:#30302d; }
+  nav .sub { padding-left:20px; font-size:15px; }
+  main { margin-left:230px; max-width:980px; padding:40px 48px 120px; }
+
+  .kick { font-family:"Oswald"; font-size:12px; letter-spacing:.14em; color:var(--faint); }
+  h1 { font-family:"Oswald"; font-size:46px; line-height:1.1; margin:6px 0 10px; }
+  h2 { font-family:"Oswald"; font-weight:500; font-size:32px; margin:64px 0 6px; scroll-margin-top:20px; }
+  h3 { font-family:"Oswald"; font-weight:500; font-size:22px; margin:30px 0 4px; scroll-margin-top:20px; }
+  .lede { font-size:24px; color:var(--ink); }
+  .num { color:var(--amber); margin-right:10px; }
+  p { margin:8px 0 12px; }
+
+  .card { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:16px 20px; margin:14px 0; }
+  .callout { border-left:3px solid var(--amber); padding:4px 0 4px 16px; margin:14px 0; font-size:22px; }
+  table { width:100%; border-collapse:collapse; font-size:17.5px; margin:10px 0; }
+  td, th { border-bottom:1px solid #3d3d39; padding:8px 8px; text-align:left; vertical-align:top; }
+  th { font-family:"Oswald"; font-weight:500; font-size:13px; letter-spacing:.08em; color:var(--faint); }
+  .demo { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid var(--amber); border-radius:8px; text-decoration:none; font-size:16px; margin:6px 8px 6px 0; }
+  .frame { width:100%; height:620px; border:1px solid var(--line); border-radius:12px; background:#222; margin:10px 0; }
+  video { width:100%; border-radius:12px; border:1px solid var(--line); background:#111; }
+  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+  .grid3 .card { margin:0; }
+  .grid3 b { font-family:"Oswald"; font-weight:500; font-size:19px; display:block; }
+  .wk { display:grid; grid-template-columns:110px 1fr; gap:6px 16px; font-size:18px; }
+  .wk div:nth-child(odd) { font-family:"Oswald"; color:var(--amber); font-size:16px; padding-top:2px; }
+  .todo { border:1.5px dashed var(--amber); border-radius:12px; padding:14px 18px; color:var(--dim); }
+  ol li, ul li { margin:5px 0; }
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">ML2 · INTERACTIVE YOUTUBE</div>
+  <a href="#video">Video (2 min)</a>
+  <a href="#thesis">1 · Thesis</a>
+  <a href="#story">2 · Learner story</a>
+  <a href="#design">3 · Design</a>
+  <a class="sub" href="#d1">See, do, decide</a>
+  <a class="sub" href="#d2">Instant vs AI</a>
+  <a class="sub" href="#d3">What we save</a>
+  <a class="sub" href="#d4">The reward</a>
+  <a class="sub" href="#d5">Before real users</a>
+  <a href="#decisions">4 · Hard decisions</a>
+  <a href="#eval">5 · How we test it</a>
+  <a href="#plan">6 · First 6-8 weeks</a>
+  <a href="#ai">7 · AI-use note</a>
+  <a href="#demos" style="margin-top:12px">Live demos ↗</a>
+</nav>
+
+<main>
+  <div class="kick">AMBITION TAKE-HOME · ML 2 · ARCHITECT AN ADAPTIVE "INTERACTIVE YOUTUBE"</div>
+  <h1>A lesson that watches what you do, and teaches back</h1>
+  <p class="lede">One concept throughout: Ambition's own RAG lesson, <i>"What RAG adds to an LLM call"</i>.</p>
+
+  <h2 id="video">Video</h2>
+  <video controls preload="metadata" src="tour.mp4" poster=""></video>
+  <p class="dim" style="font-size:16px">The guided tour of the clickable lesson. Or try it yourself: <a href="ambition-lesson.html" target="_blank">open the lesson</a> and press ▶ Guided tour.</p>
+
+  <!-- 1 -->
+  <h2 id="thesis"><span class="num">1</span>Thesis</h2>
+  <div class="callout">Ambition already asks learners to predict, then throws the answer away. Make every touch on the lesson count as evidence, let a small model read it, let a policy pick the next screen, and judge everything by one thing: <b>a new question answered on her own, days later.</b></div>
+  <p>Today the RAG lesson shows three passages and asks "which would you send?". Passage <b>A</b> is a trap: same policy, same words, wrong dates. A learner who picks A believes <b class="a">"similar text is evidence"</b>, the exact idea the next lesson exists to fix. That pick is never recorded. I checked the browser's network log: clicking a passage sends no request to Ambition's API; only "viewed this step" is sent.</p>
+  <p>The design keeps one clear split. <b>Code</b> owns every number, every right/wrong, and every instant response. <b>Small ML models</b> read the learner and choose the next move. <b>An LLM</b> only writes Waymond's 1-2 sentences. That split is what makes it fast, correct, and trainable.</p>
+
+  <!-- 2 -->
+  <h2 id="story"><span class="num">2</span>One learner story</h2>
+  <p><b>Priya</b> opens the RAG pursuit. The lesson plays like a video, with chapters on a timeline. At the first ◆ it stops: <i>"Drag the passage you would send."</i></p>
+  <ol>
+    <li>She drags <b>A</b>. Within a second the screen puts her dates beside the question's dates: <i>before 1 June</i> vs <i>on or after 1 June</i>.</li>
+    <li>Behind the scenes the habit detector moves to <b>"similar = evidence: 80%"</b> and the policy picks <b>"contrast the dates"</b>, saving the odds it chose with.</li>
+    <li>Waymond adds one line, 1-3 seconds later. She highlights <i>"on or after 1 June"</i> as a Question and asks why A looked right.</li>
+    <li>She tries again, picks <b>B</b>, then clicks <b>Go deeper</b>. A 3D view of the whole pipeline opens; she clicks <b>Retrieve</b> and watches the lesson's own word-counting code pick the wrong passage when the question is reworded.</li>
+    <li>Three days later, one notification, one new question on a different topic. She picks the real rule, not the word trap. <b>That answer is the reward.</b></li>
+  </ol>
+  <div class="grid3">
+    <div class="card"><b>Priya · new to RAG</b>Falls for the look-alike. Gets guidance: dates side by side, then a reworded check.</div>
+    <div class="card"><b>Ravi · engineer</b>Picks B in 4 seconds. Gets less: skips the explanation, goes to a harder reworded question and the code.</div>
+    <div class="card"><b>Sam · leaves halfway</b>Quits at chapter 2. Two days later: one 60-second question, resuming exactly where he left.</div>
+  </div>
+
+  <!-- 3 -->
+  <h2 id="design"><span class="num">3</span>Design</h2>
+  <p>Each part of the brief maps to something you can click in the demo.</p>
+  <a class="demo" href="ambition-lesson.html" target="_blank">▶ The lesson</a><a class="demo" href="how-ai-learns.html" target="_blank">▶ How the AI learns</a><a class="demo" href="bootstrap.html" target="_blank">▶ Before real learners</a>
+
+  <h3 id="d1">3.1 · What the AI sees, knows, can do, and may decide</h3>
+  <table>
+    <tr><th>PART</th><th>IN PLAIN WORDS</th><th>IN THE RAG LESSON</th></tr>
+    <tr><td><b>Observations</b></td><td>what we can see her do</td><td>passage picks, highlights (Important / Question / Revisit / Connection), notes, Ask text + what it points at, play / pause / rewind / skip, 3D opens, level setting, check answers</td></tr>
+    <tr><td><b>Environment state</b></td><td>what is true right now</td><td><i>visible:</i> chapter, passages shown, what is in the request, what was revealed. <i>hidden (guessed):</i> her habit, her skill, how fast she forgets</td></tr>
+    <tr><td><b>Actions</b></td><td>the moves the system can make</td><td>contrast the dates · worked example · open a 3D part · harder (reworded) question · shuffled re-check · move on · schedule the comeback</td></tr>
+    <tr><td><b>Policy boundary</b></td><td>who decides what</td><td><b>ML:</b> which move, which question, how much help. <b>LLM:</b> the words only. <b>Code:</b> every number, right/wrong, the day-3 test. <b>Learner:</b> level, skip, "just tell me" always win</td></tr>
+  </table>
+  <p class="dim" style="font-size:17px">Demo: open <b>🧠 Model view</b> in the lesson. Its four panels are exactly these: observations, learner state, policy, reward.</p>
+
+  <h3 id="d2">3.2 · What must be instant, and what can wait</h3>
+  <table>
+    <tr><th>SPEED</th><th>WHO</th><th>EXAMPLES</th></tr>
+    <tr><td class="g"><b>Instant · under 0.1 s</b></td><td>plain code</td><td>dragging a passage, the right/wrong reveal, dates side by side, rotating and zooming 3D, editing the question and watching the scores change, highlights and notes</td></tr>
+    <tr><td class="a"><b>1-3 seconds</b></td><td>fast LLM</td><td>Waymond's reply, "explain this part", Summarize, Simpler / Deeper</td></tr>
+    <tr><td class="b"><b>Background · minutes</b></td><td>bigger models, checked by code</td><td>a new practice case aimed at her mistake, a recap of her session</td></tr>
+    <tr><td style="color:var(--violet)"><b>Days</b></td><td>scheduler</td><td>the one-question check-in</td></tr>
+  </table>
+  <p>Rule: what you touch answers from code at once. AI adds words and choices, never numbers. While the AI thinks, the screen has already reacted.</p>
+
+  <h3 id="d3">3.3 · What we save (the trajectory)</h3>
+  <p>One timeline per learner, four kinds of entries:</p>
+  <table>
+    <tr><th>KIND</th><th>EXAMPLE</th><th>WHAT IT TELLS US</th></tr>
+    <tr><td class="g">Explicit answers</td><td>picked A · check: "No, A covers before 1 June"</td><td>what she believes (strongest signal)</td></tr>
+    <tr><td class="b">Interaction traces</td><td>opened Retrieve in 3D · rewound 10 s · skipped chapter 3</td><td>where she goes deep, where she struggles or leaves</td></tr>
+    <tr><td class="a">Interjections</td><td>highlighted "after 1 June" as Question · asked "why did A look right?"</td><td>what is confusing her, pointed at the exact thing</td></tr>
+    <tr><td style="color:var(--violet)">Later evidence</td><td>day 3: new question, right, no hints</td><td>did it stick (the reward)</td></tr>
+  </table>
+  <p>Every teaching move also saves a <b>receipt</b>: what the model believed, the options it had, the odds of each, and what it chose. That receipt is what lets us test a new policy on old data later. A rewind alone means little (61% of rewind spikes in MOOC videos sit at visual transitions, Kim 2014), so signals are always read together.</p>
+
+  <h3 id="d4">3.4 · The reward</h3>
+  <div class="callout">Reward = <b>right on a new question, on her own, 2-7 days later.</b> Nothing else trains the policy.</div>
+  <ul>
+    <li><b>Never rewarded:</b> watch time, clicks, completion, answers while the lesson is still on screen. Plain AI access raised practice scores but exam scores fell when it was removed (Bastani et al., PNAS 2025).</li>
+    <li><b>Can't be gamed:</b> the day-3 question is chosen at random by a separate scheduler the policy cannot see.</li>
+    <li><b>People who don't return</b> count as missing, not as a pass. We report both "learned" and "came back".</li>
+    <li><b>Two memories:</b> her own memory (what she asked, got wrong, likes) shapes only her lessons. The shared model learns patterns across everyone.</li>
+  </ul>
+  <p>How it trains: a <b>habit detector</b> (Bayesian update), a <b>skill model</b> (logistic regression, later a transformer), a <b>memory model</b> (per-person forgetting, like Duolingo's half-life regression), and a <b>chooser</b> (rules plus Thompson sampling, later offline RL). Every night, day-3 results are attached to the moves that led to them. <a href="how-ai-learns.html" target="_blank">See it step by step ↗</a></p>
+
+  <h3 id="d5">3.5 · Before there are real learners</h3>
+  <ol>
+    <li><b>Authored environments.</b> We write one lesson as a recipe: question, right passage, look-alike trap, off-topic passage. AI writes hundreds of variants; code rejects any where the trap isn't really wrong.</li>
+    <li><b>Simulated learners.</b> Small programs with one habit each (falls for look-alikes, checks dates, skims, random, quits), plus how they react to each tutor move, plus noise and forgetting. Written as code, because AI-played students tend to quietly fix their own mistakes (Do, Sonkar, Sachan 2026). AI only writes their chat questions.</li>
+    <li><b>Offline evaluation.</b> Every new AI version must pass on the fake students: spots each habit, never leaks the answer, picks sensible moves, doesn't slow down people who already know it. Later the same checks run on saved real sessions.</li>
+    <li><b>Human studies.</b> 5 think-alouds × 3 rounds, then 60 paid learners, adaptive vs normal, with a new question 3-5 days later (the design of Google's Learn Your Way study: 78% vs 67%).</li>
+    <li><b>Fix the fakes.</b> Compare fake and real behavior; keep the fakes that match, fix the rest (how Waymo scores its simulated drivers), and repeat.</li>
+  </ol>
+  <p><a href="bootstrap.html" target="_blank">Try the five steps ↗</a></p>
+
+  <!-- 4 -->
+  <h2 id="decisions"><span class="num">4</span>Hard decisions</h2>
+  <table>
+    <tr><th>DECISION</th><th>WHY</th><th>WHAT IT COSTS</th></tr>
+    <tr><td><b>The LLM never picks the move or the numbers</b></td><td>LLMs are weaker learner models than simple ML (deep knowledge tracing beat an LLM in every setting, Hooshyar 2025), and numbers must be right</td><td>less "magic"; more authoring</td></tr>
+    <tr><td><b>Reward only on day-3 unaided answers</b></td><td>in-session gains can vanish (PNAS 2025)</td><td>few, slow labels; needs a proxy that is checked against day 3</td></tr>
+    <tr><td><b>Simple models first</b></td><td>logistic regression wins on small and medium data (Gervet 2020, 9 datasets); transformers need Riiid-scale data</td><td>lower ceiling early</td></tr>
+    <tr><td><b>One randomized decision per lesson, odds logged</b></td><td>it is the only way to know which move helped, and to test new policies on old data</td><td>some learners get the second-best move</td></tr>
+    <tr><td><b>Preferences remembered, not trusted</b></td><td>"learning styles" matching has no evidence (Pashler 2008); her stated level is always obeyed, but "visual first" only becomes a default once it improves her day-3 results</td><td>slower to feel personal</td></tr>
+    <tr><td><b>Fake students as code, not AI role-play</b></td><td>AI students drop their mistakes</td><td>less varied behavior until real data tunes them</td></tr>
+  </table>
+
+  <!-- 5 -->
+  <h2 id="eval"><span class="num">5</span>How we test it</h2>
+  <ul>
+    <li><b>Before people:</b> the offline checks above, on every change.</li>
+    <li><b>Is it usable:</b> 3 rounds of 5 think-alouds. Fix anything confusing.</li>
+    <li><b>Does it teach:</b> 60 paid learners, new to RAG, randomly split: today's lesson vs the adaptive one. Same day-3 question for both, picked at random.</li>
+    <li><b>Main measure:</b> share of people who answer the new question right, unaided, 3-5 days later.</li>
+    <li><b>Also watched:</b> time spent, how many come back, how often Waymond was wrong, whether experts felt slowed down.</li>
+    <li><b>Ship rule:</b> adaptive must beat normal on day 3, without more people quitting. Otherwise we change one thing and run again.</li>
+  </ul>
+
+  <!-- 6 -->
+  <h2 id="plan"><span class="num">6</span>The first 6-8 weeks</h2>
+  <div class="wk">
+    <div>Week 1</div><div>Instrument the RAG lesson: log passage picks, highlights, Ask, skips, rewinds. Write the lesson recipe and 4-5 habits.</div>
+    <div>Week 2</div><div>Fake students and the offline checks. Make 50 checked lesson variants.</div>
+    <div>Week 3</div><div>Think-alouds (5 people × 3 rounds). Fix the screen.</div>
+    <div>Week 4</div><div>Adaptive v1: habit detector, rules + one randomized decision with logged odds, day-3 scheduler, Waymond's short lines.</div>
+    <div>Weeks 5-6</div><div>60-person pilot, adaptive vs normal, check-ins 3-5 days later.</div>
+    <div>Week 7</div><div>Analyze. Tune the fake students against the real sessions.</div>
+    <div>Week 8</div><div>Decide: ship to a small share of learners and switch on Thompson sampling, or change one thing and rerun.</div>
+  </div>
+  <p class="dim" style="font-size:17px">Not in v1: transformer models, offline RL, generated 3D scenes. They come only after the data exists and they beat the simple version on day 3.</p>
+
+  <!-- 7 -->
+  <h2 id="ai"><span class="num">7</span>AI-use note</h2>
+  <div class="todo">To be written by me, in my own words: how I used AI on this, what I accepted, what I rejected, and the hours spent.</div>
+
+  <h2 id="demos">Live demos</h2>
+  <p>The lesson, clickable. Press <b>▶ Guided tour</b> at the top right, or open <b>🧠 Model view</b> and try it yourself.</p>
+  <iframe class="frame" src="ambition-lesson.html" title="Interactive lesson"></iframe>
+  <a class="demo" href="how-ai-learns.html" target="_blank">▶ How the AI learns</a><a class="demo" href="bootstrap.html" target="_blank">▶ Before real learners</a>
+  <p class="dim" style="font-size:15px;margin-top:20px">Mockup notes: Waymond's replies, the learner numbers and the policy odds in the demos are scripted examples, not live model output. Research figures are cited to their sources.</p>
+</main>
+
+<script>
+const links = [...document.querySelectorAll('nav a')];
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+}), { rootMargin: '-30% 0px -60% 0px' });
+document.querySelectorAll('h2[id], h3[id]').forEach(h => io.observe(h));
+</script>
+</body>
+</html>
