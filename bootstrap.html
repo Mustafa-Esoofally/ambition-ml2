@@ -73,13 +73,13 @@
   <!-- STEP 1 -->
   <section class="panel on" data-p="0">
     <h2>1 · Make lessons</h2>
-    <div class="lead">We write one lesson by hand. AI writes many more. <b>Code checks every one.</b></div>
+    <div class="lead">We write one lesson by hand. AI writes many more. <b>Each one is checked</b>: code checks the facts (dates, amounts), a person spot-checks the wording.</div>
     <div class="row">
       <div class="box"><h4>THE RECIPE (written once)</h4>
         a question<br><span class="g">✓ one right passage</span> (matches the details)<br><span class="a">⚠ one look-alike</span> (same words, wrong details)<br><span class="dim">○ one off-topic passage</span></div>
       <div class="box" style="flex:2"><h4>AI-MADE VERSIONS</h4><div id="vars" class="dim">Click the button to make some.</div></div>
     </div>
-    <button class="btn" id="genbtn">✦ Make 3 new lessons</button>
+    <button class="btn" id="genbtn">✦ Make 3 new lessons</button> <span class="dim" style="font-size:15px">(demo: these 3 are written by hand to show the idea)</span>
     <details class="more"><summary>More detail</summary><div class="in">
       <ul><li>The lesson is stored as data the code understands: question, right answer, trap, off-topic.</li>
       <li>A big AI model writes new versions on other topics (refunds, leave, shipping).</li>
@@ -107,7 +107,7 @@
     <h2>3 · Test the AI before anyone sees it</h2>
     <div class="lead">Every new version of the AI must pass these checks on the fake students. Like a driving test.</div>
     <div id="gates"></div>
-    <div class="dim" style="font-size:15px;margin-top:6px">Habit numbers come from our fake-student run; the rest are example results.</div>
+    <div class="dim" style="font-size:15px;margin-top:6px">The habit numbers come from the lesson's fake-student run (200 bots). The other four results are examples of what the checks would report.</div>
     <button class="btn" id="gatebtn">▶ Run the checks</button>
     <details class="more"><summary>More detail</summary><div class="in">
       <ul><li>Checks run on every change, like software tests.</li>
@@ -120,11 +120,11 @@
     <h2>4 · Real people, small first</h2>
     <div class="lead">Fake students show the AI isn't broken. <b>Only real people show it teaches.</b></div>
     <div class="row">
-      <div class="box"><h4>WEEK 2-3 · 5 PEOPLE, 3 ROUNDS</h4>They think out loud while using it. We fix anything confusing.</div>
-      <div class="box"><h4>WEEK 3-5 · 60 PAID LEARNERS</h4>Half get the adaptive lesson, half the normal one.</div>
+      <div class="box"><h4>WEEK 3 · 5 PEOPLE, 3 ROUNDS</h4>They think out loud while using it. We fix anything confusing.</div>
+      <div class="box"><h4>WEEKS 5-6 · 60 PAID LEARNERS</h4>Half get the adaptive lesson, half the normal one.</div>
       <div class="box"><h4>3-5 DAYS LATER</h4>One new question each. Who remembers more?</div>
     </div>
-    <div style="margin-top:14px;font-size:18px">Same design as Google's <b>Learn Your Way</b> study (60 students): <b class="g">78%</b> vs <b>67%</b> remembered after 3-5 days.</div>
+    <div style="margin-top:14px;font-size:18px">Inspired by Google's <b>Learn Your Way</b> study (60 students), which used a 3-5 day retention test: <b class="g">78%</b> vs <b>67%</b> for an AI textbook vs a standard PDF reader.</div>
     <details class="more"><summary>More detail</summary><div class="in">
       <ul><li>Recruit through a paid panel (e.g. Prolific), people new to RAG.</li>
       <li>The day-3 question is picked at random by a separate system, so neither version can make it easy.</li>
@@ -139,8 +139,8 @@
     <div class="dim" style="font-size:16px;margin-top:6px">Example numbers, to show the idea.</div>
     <div style="margin-top:12px;font-size:18px">Then we go back to step 2 with better fakes, and run again. Each round, the practice world gets closer to real life.</div>
     <details class="more"><summary>More detail</summary><div class="in">
-      <ul><li>Waymo does this for self-driving: it scores fake drivers by how well they match real logged driving, and keeps the best.</li>
-      <li>Alibaba built fake shoppers from real logs (Virtual-Taobao). Testing on them first led to more than 2% more revenue live.</li>
+      <ul><li>Waymo's simulation challenge scores fake drivers by how well they match real logged driving.</li>
+      <li>Alibaba built fake shoppers from real logs (Virtual-Taobao). A policy trained in that simulator raised revenue by more than 2% live.</li>
       <li>AI-played shoppers in one study behaved far more alike than real people, which is why our habits are written as code.</li></ul></div></details>
   </section>
 </div>
@@ -208,12 +208,12 @@ $('#runall').onclick = () => {
     if (b.quits && R() < b.quits) { quit++; continue; }
     if (p !== 'B') { wrong1++; if (R() < b.fix.dates) fixed++; }
   }
-  $('#runout').innerHTML = `<b>200 practice sessions made in under a second.</b> ${wrong1} first picks were wrong; the tutor's "dates side by side" fixed ${fixed} of them. ${quit} quit halfway. <span class="dim">Overnight, this scales to thousands.</span>`;
+  $('#runout').innerHTML = `<b>200 simulated sessions in under a second.</b> ${wrong1} first picks were wrong; the tutor's "dates side by side" fixed ${fixed} of them. ${quit} quit halfway. <span class="dim">Overnight, this scales to thousands.</span>`;
 };
 
 // ---- step 3: checks ----
 const GATES = [
-  ['Spots each habit correctly', 'look-alike 88% · date checker 79% · skimmer 63% · random 34%', 'pass', 'Random clickers are hard to read, so the AI must stay unsure about them, not act.'],
+  ['Spots each habit correctly', 'look-alike 90% · date checker 84% · skimmer 52% · random 32% (after 2 questions)', 'pass', 'Random clickers are hard to read, so the AI must stay unsure about them, not act.'],
   ['Never shows the answer before she picks', '0 leaks in 200 sessions', 'pass', ''],
   ['Picks a sensible next screen for each habit', 'look-alike → dates side by side · skimmer → shuffled question', 'pass', ''],
   ['Doesn\'t annoy people who already know it', 'date checkers skip ahead after 1 right pick', 'pass', ''],

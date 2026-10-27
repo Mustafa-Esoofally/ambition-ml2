@@ -238,7 +238,7 @@
         <div id="partdesc" class="dim">Click any box. It opens up and shows what is inside.</div>
         <div id="insidewrap" style="display:none">
           <div class="cap" style="font-size:18px;margin-top:12px"><b>Inside "Retrieve":</b> this simple retriever counts the words a passage shares with the question, and picks the highest.
-            <span class="dim">(It is the exact code from this lesson, run live.)</span></div>
+            <span class="dim">(A JavaScript copy of this lesson's Python retriever, run live.)</span></div>
           <div id="inside"></div>
           <input id="qedit" class="sel" value="Under policy TR-17, what is the hotel cap for trips starting on or after 1 June?">
           <div class="presets"><span class="dim" style="font-size:14px">Try:</span>
@@ -324,6 +324,7 @@ const CH = ['The question', 'Pick evidence', 'Inside retrieval', 'Check', 'Day 3
 const GATE = { 1: true, 3: true, 4: true };     // chapters that wait for an answer
 const DUR = [9, 0, 0, 0, 0];                       // seconds of auto-play per chapter (0 = interactive)
 const t0 = performance.now();
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ts = () => ((performance.now() - t0) / 1000).toFixed(1).padStart(5, ' ') + 's';
 
 // ---------------- learner state (toy versions of the real models) ----------------
@@ -343,7 +344,7 @@ function log(type, text, speed) {
   const cls = { ans: 't-ans', trace: 't-trace', ask: 't-ask', later: 't-later' }[type];
   const lab = { ans: 'answer', trace: 'trace', ask: 'question', later: 'later' }[type];
   const d = document.createElement('div');
-  d.innerHTML = `<span class="dim">${ts()}</span> <span class="ty ${cls}">${lab}</span>${text}` +
+  d.innerHTML = `<span class="dim">${ts()}</span> <span class="ty ${cls}">${lab}</span>${esc(text)}` +
     (speed ? ` <span class="speed ${speed === 'inst' ? 's-inst' : 's-mod'}">${speed === 'inst' ? 'instant · code' : 'model · 1-3 s'}</span>` : '');
   $('#events').prepend(d); renderBeliefs();
 }
@@ -363,7 +364,7 @@ function decide(where) {
   const chosen = probs[0][0];
   $('#policy').innerHTML = `<div class="dim">at: ${where}</div>` + probs.map(([k, p]) =>
     `<div class="${k === chosen ? 'ch' : ''}">${k === chosen ? '▶' : '&nbsp;'} ${k.padEnd(34, ' ')} p=${p.toFixed(2)}</div>`).join('') +
-    `<div class="dim" style="margin-top:4px">receipt saved: state + options + odds + choice</div>`;
+    `<div class="dim" style="margin-top:4px">demo shows the top option. The real system picks by these chances and saves a receipt: state + options + odds + choice.</div>`;
   return chosen;
 }
 
@@ -379,7 +380,7 @@ function say(html, chips = [], delay = 1100) {
 }
 function you(text, quote) {
   const d = document.createElement('div'); d.className = 'm you';
-  d.innerHTML = (quote ? `<span class="quote">"${quote}"</span>` : '') + text;
+  d.innerHTML = (quote ? `<span class="quote">"${esc(quote)}"</span>` : '') + esc(text);
   $('#msgs').appendChild(d); $('#msgs').scrollTop = 1e6;
 }
 let context = null;
@@ -389,7 +390,7 @@ const ANS = {
   summarize: () => `So far: a model can't know yesterday's policy, so RAG <b>finds a passage and adds it to the request</b>.` +
     (S.picks.includes('A') ? ` You first picked A. It shares the topic, but covers the wrong dates.` : '') +
     (S.opened.size ? ` You looked inside: ${[...S.opened].join(', ')}.` : '') +
-    ($$('.note').length ? ` Your notes: ${$$('.note .qt').map(n => n.textContent).join(' · ')}` : ''),
+    ($$('.note').length ? ` Your notes: ${$$('.note').map(n => esc(n.querySelector('textarea').value || n.querySelector('.qt')?.textContent || '')).filter(Boolean).join(' · ')}` : ''),
   deeper: () => { goChapter(2); setTimeout(() => open3D('Retrieve'), 600); S.deep = clamp(S.deep + .08); log('trace', 'go_deeper → opened Retrieve', 'inst');
     return `Opening the part that does the picking: <b>Retrieve</b>. Try rewording the question and watch which passage wins.`; },
   simpler: () => `Think of it like an open-book exam. The model is the student. RAG is the friend who finds <b>the right page</b> and puts it on the desk. The wrong page, even if it's about hotels, doesn't help.`,
@@ -458,6 +459,7 @@ req.addEventListener('dragover', e => { e.preventDefault(); req.classList.add('o
 req.addEventListener('dragleave', () => req.classList.remove('over'));
 req.addEventListener('drop', e => { e.preventDefault(); req.classList.remove('over'); choose(e.dataTransfer.getData('text/plain')); });
 function choose(k) {
+  if (!PTEXT[k]) return;
   const secs = ((performance.now() - (pickStart || performance.now())) / 1000).toFixed(1);
   S.picks.push(k);
   $('#slot').innerHTML = `<span style="color:var(--ink)">[${k}] ${PTEXT[k]}</span>`;
@@ -474,13 +476,14 @@ function choose(k) {
     a.innerHTML = k === 'A' ? `<b>Model's answer:</b> "This passage covers trips before 1 June. It doesn't give the cap for your trip." <span class="r">✗</span>`
       : `<b>Model's answer:</b> "The passage is about receipts. It doesn't mention a hotel cap." <span class="r">✗</span>`;
     if (k === 'A') { S.similar = clamp(S.similar + .5); S.dates = clamp(S.dates - .15); $('#contrast').style.display = 'block'; }
-    else { S.similar = clamp(S.similar + .05); }
+    else { S.similar = clamp(S.similar + .05); $('#contrast').style.display = 'none'; }
     log('ans', `pick_passage ${k} · wrong · ${k === 'A' ? 'topic look-alike' : 'off-topic'}`, 'inst');
   }
   const mv = decide('after the pick');
   if (k === 'A') say(`You picked A. Fair: it shares almost every word with the question. Look at the <mark class="date">dates</mark> though.`, [['Why did A look right?', 'whyA'], ['Show me how a computer picks', 'retr']], 1300);
   if (k === 'B') say(mv === 'harder case (reworded question)' ? `Right, and you matched the dates. Want a harder one? I'll reword the question so the words stop helping.` : `Right: B covers your dates. Next, let's open the box that does this picking automatically.`,
     [['Go deeper', 'deeper'], ['Summarize so far', 'summarize']], 1200);
+  if (k === 'B' && !$('#cont2')) $('#answer').insertAdjacentHTML('afterend', '<div class="chips" id="cont2"><button class="chip" onclick="goChapter(2)">Continue →</button></div>');
 }
 $('#tryagain').onclick = () => { log('trace', 'try_again after wrong pick', 'inst'); $('#slot').textContent = '[ drop a passage here ]'; $('#answer').style.display = 'none'; $('#contrast').style.display = 'none'; $$('.pass[data-p]').forEach(p => p.classList.remove('right', 'wrong')); };
 
@@ -506,7 +509,7 @@ const PART = {
     R: 'Attribution: a citation being present is not the same as the passage supporting the claim, which is exactly the chapter 4 check.' },
 };
 const LV = ['E', 'En', 'R'], LVNAME = { E: 'Everyday', En: 'Engineer', R: 'Researcher' };
-let level = 'E', partSel = null;
+let level = 'E', partSel = null, partLv = 'E';
 function txtSprite(text, w, hgt, opt = {}) {
   const c = document.createElement('canvas'); c.width = 512; c.height = Math.round(512 * hgt / w); const g = c.getContext('2d');
   if (opt.bg) { g.fillStyle = opt.bg; g.beginPath(); g.roundRect(4, 4, c.width - 8, c.height - 8, 18); g.fill(); }
@@ -551,9 +554,9 @@ function init3D() {
     const n = txtSprite('0', .4, .3, { color: '#e8c36a' }); kids.Retrieve.add(n);
     bars[t] = { b, n };
   });
-  const ctxS = txtSprite('rules\n+ [B] passage\n+ question', 1.5, .8, { size: 44, bg: '#30343a', weight: 500, font: 'JetBrains Mono, monospace' }); ctxS.position.set(0, .55, 0); kids.Context.add(ctxS);
+  const ctxS = txtSprite('rules\n+ top passage\n+ question', 1.5, .8, { size: 44, bg: '#30343a', weight: 500, font: 'JetBrains Mono, monospace' }); ctxS.position.set(0, .55, 0); kids.Context.add(ctxS);
   const llmS = txtSprite('weights\nunchanged', 1.2, .6, { size: 50, color: '#d59be0' }); llmS.position.set(0, .45, 0); kids.LLM.add(llmS);
-  const ansS = txtSprite('$220 per night [B]', 1.7, .4, { size: 46, bg: '#2f3a2c', color: '#8fc79a' }); ansS.position.set(0, .4, 0); kids.Answer.add(ansS);
+  const ansS = txtSprite('answer + [citation]', 1.7, .4, { size: 46, bg: '#2f3a2c', color: '#8fc79a' }); ansS.position.set(0, .4, 0); kids.Answer.add(ansS);
   // a request dot flowing through the pipeline
   const q = new THREE.Mesh(new THREE.SphereGeometry(.13, 20, 20), new THREE.MeshBasicMaterial({ color: 0xe8c36a })); scene.add(q);
   let yaw = -.25, pitch = .38, dist = 13, target = new THREE.Vector3(0, .3, 0), want = { dist: 13, x: 0 }, drag = null;
@@ -590,6 +593,7 @@ function init3D() {
   score();
 }
 function showPart(name, lv) {
+  partLv = lv;
   $('#partname').textContent = name; $('#partdesc').innerHTML = `<span class="dim" style="font-size:13px">${LVNAME[lv]} level ·</span> ${PART[name][lv]}`;
 }
 function open3D(name) {
@@ -601,11 +605,11 @@ function open3D(name) {
 $('#partask').onclick = () => {
   if (!partSel) return; you('Explain this part', `3D: ${partSel}`); S.asks++;
   log('ask', `ask_about_part "${partSel}" · level ${LVNAME[level]}`, 'mod');
-  say(PART[partSel][level], [['Simpler', 'p_simpler'], ['Deeper', 'p_deeper']], 1000);
+  say(PART[partSel][partLv], [['Simpler', 'p_simpler'], ['Deeper', 'p_deeper']], 1000);
 };
 $('#partclip').onclick = () => { if (!partSel) return; addNote(`🧊 ${partSel}: ${PART[partSel][level]}`); log('trace', `clip_part "${partSel}" to notes`, 'inst'); };
 function shiftPart(d) {
-  if (!partSel) return; const lv = LV[Math.max(0, Math.min(2, LV.indexOf(level) + d))];
+  if (!partSel) return; const lv = LV[Math.max(0, Math.min(2, LV.indexOf(partLv) + d))];
   showPart(partSel, lv); log('trace', `${d > 0 ? 'deeper' : 'simpler'} on "${partSel}" → ${LVNAME[lv]}`, 'inst'); if (d > 0) S.deep = clamp(S.deep + .05);
   return lv;
 }
@@ -619,7 +623,7 @@ document.addEventListener('click', e => {
 $('#level').onchange = e => {
   level = e.target.value; log('trace', `set_level → ${LVNAME[level]} (stated preference)`, 'inst');
   if (partSel) showPart(partSel, level);
-  say(`Got it. I'll explain at <b>${LVNAME[level]}</b> level from now on. You can change it anytime, and I'll tell you if another level seems to work better for you.`, [], 700);
+  say(`Got it. Part explanations will use the <b>${LVNAME[level]}</b> level. (In the real product, every reply would follow it.)`, [], 700);
   renderBeliefs();
 };
 // the lesson's own retriever: count shared lower-cased whitespace tokens, Python max() keeps the first on ties
@@ -655,12 +659,15 @@ $('#submitcheck').onclick = () => {
 };
 
 // ---------------- chapter 5: day 3 (the reward) ----------------
+let day3done = false;
 $$('.pass[data-d]').forEach(p => p.onclick = () => {
+  if (day3done) return; day3done = true;
   const ok = p.dataset.d === 'ok';
   $$('.pass[data-d]').forEach(x => x.classList.remove('right', 'wrong')); p.classList.add(ok ? 'right' : 'wrong');
-  log('later', `day-3 check · picked ${p.querySelector('h4').textContent.split(' ')[0]} · ${ok ? 'correct, no hints' : 'wrong (took the "partners" word trap)'}`, 'inst');
+  log('later', `day-3 check · first attempt · picked ${p.querySelector('h4').textContent.split(' ')[0]} · ${ok ? 'correct, no hints' : 'wrong'}`, 'inst');
   $('#dayfb').innerHTML = ok ? `<span class="g">✓</span> She skipped the word trap ("partners") and found the real rule. <b class="a">This answer is the reward the system learns from.</b>`
-    : `<span class="r">✗</span> "Partners" matched the words but not the meaning. The system brings back the dates lesson, briefly.`;
+    : p.dataset.d === 'x' ? `<span class="r">✗</span> "Partners" matched the words but not the meaning. The system would bring back a short contrast lesson.`
+      : `<span class="r">✗</span> Booking is about hotels, not guests. The system would bring back a short contrast lesson.`;
   $('#reward').innerHTML = `day-3 check: <b class="${ok ? 'g' : 'r'}">${ok ? 'correct → +1' : 'wrong → 0'}</b> · this, not watch time, trains the policy`;
 });
 
@@ -681,7 +688,7 @@ $$('#seltool .dot').forEach(d => d.onclick = () => {
   try { selRange.surroundContents(m); } catch (_) {}
   $('#seltool').style.display = 'none'; window.getSelection().removeAllRanges();
   log('trace', `highlight as ${HNAME[d.dataset.h]}: "${txt.slice(0, 32)}"`, 'inst');
-  if (d.dataset.h === 'q') { S.similar = clamp(S.similar + (/(1 June|before|after)/.test(txt) ? -.06 : .0)); say(`You marked "<i>${txt}</i>" as a question. Want me to explain it, or keep going and come back later?`, [['Explain this', 'simpler'], ['Later', 'summarize']], 900); }
+  if (d.dataset.h === 'q') { S.similar = clamp(S.similar + (/(1 June|before|after)/.test(txt) ? -.06 : .0)); say(`You marked "<i>${txt}</i>" as a question. Want me to explain it, or keep going and come back later?`, [['Explain this', 'simpler'], ['Summarize so far', 'summarize']], 900); }
   if (d.dataset.h === 'rev') log('trace', 'scheduled into revisit queue', 'inst');
 });
 $('#seltool [data-act="note"]').onclick = () => { const t = selRange.toString(); $('#seltool').style.display = 'none'; addNote(t); };
@@ -701,6 +708,9 @@ function addNote(quote) {
   addEventListener('pointermove', e => { if (!d) return; n.style.right = (d.r - (e.clientX - d.x)) + 'px'; n.style.top = (d.t + (e.clientY - d.y)) + 'px'; });
   addEventListener('pointerup', () => { if (d) log('trace', 'move note on canvas', 'inst'); d = null; });
   n.querySelector('textarea').addEventListener('change', e => log('trace', `note text: "${e.target.value.slice(0, 30)}"`, 'inst'));
+  n.querySelector('.row span:last-child').innerHTML = '<button class="nask" style="color:var(--amber)">✦ Ask</button> · <button class="ndel">🗑</button>';
+  n.querySelector('.ndel').onclick = () => { n.remove(); log('trace', 'note deleted', 'inst'); };
+  n.querySelector('.nask').onclick = () => { pendingQuote = quote || n.querySelector('textarea').value; setContext('your note'); $('#askin').focus(); };
   log('trace', `note_create${quote ? ` from "${quote.slice(0, 28)}"` : ''}`, 'inst');
 }
 $('#noteBtn').onclick = () => addNote('');
@@ -735,14 +745,17 @@ async function step(my, n, sel, text, ms, action, cursorSel) {
   if (cursorSel !== undefined) await cursorTo(cursorSel || sel, true);
   if (action) action();
   await wait(250);
+  if (my !== touring) throw 'stop';
   const r = spotOn(sel); if (r) bubble(r, n, text);
   await wait(ms);
+  if (my !== touring) throw 'stop';
 }
 function endTour() {
   touring++; ['#spot', '#bubble', '#fcur'].forEach(s => $(s).style.display = 'none'); $('#tourbtn').textContent = '▶ Guided tour';
 }
 function openModel(on) { $('#model').classList.toggle('open', on); document.body.classList.toggle('mopen', on); }
 async function tour() {
+  if (S.picks.length || S.opened.size) { location.href = location.pathname + '?tour'; return; }
   const my = ++touring; $('#tourbtn').textContent = '■ Stop tour';
   openModel(false); goChapter(0, 'auto');
   const N = (i) => `STEP ${i} OF 12`;
@@ -793,14 +806,14 @@ $('#runsim').onclick = async () => {
   for (let i = 0; i < 200; i++) {
     const hb = names[i % names.length], p = HABITS[hb], a = draw(p.q1, R), b = draw(p.q2, R), s = st[hb];
     s.n++; if (a === 'A') s.A++; if (diagnose(a) === hb) s.d1++; if (diagnose(a, b) === hb) s.d2++;
-    rows += 9;
+    rows += 1;
     if (i < 12 || i % 25 === 0) { $('#simlog').insertAdjacentHTML('afterbegin', `<div>bot #${i + 1} [${hb}] → Q1: ${a} · Q2: ${b}</div>`); await wait(45); }
   }
   log('trace', 'ran 200 simulated learners', 'inst');
   const pc = (a, b) => Math.round(a / b * 100), P = (n, k) => pc(st[n][k], st[n].n);
   $('#simout').innerHTML = `<table><tr><th>hidden habit</th><th>picked A</th><th>AI right after Q1</th><th>after Q2</th></tr>` +
     names.map(n => `<tr><td>${n}</td><td>${P(n, 'A')}%</td><td>${P(n, 'd1')}%</td><td class="a">${P(n, 'd2')}%</td></tr>`).join('') +
-    `</table><p><b>${rows.toLocaleString()} rows of practice data</b>, with zero real users.</p>
+    `</table><p><b>${rows} simulated sessions</b>, with zero real users. (Demo: the habits and their pick rates are written by us.)</p>
     <p class="dim">What it shows: Q1 alone never catches skimmers (${P('skims, picks first', 'd1')}%). A second question, with the passages shuffled, catches most of them (${P('skims, picks first', 'd2')}%).
     Random clickers stay hard to read (${P('random clicker', 'd2')}%), so the AI should keep its guess unsure for them instead of acting on it.</p>
     <p class="dim">This is how the policy learns <b>which question to ask next</b>. Later, real learners tune these fake students so they behave like people.</p>`;

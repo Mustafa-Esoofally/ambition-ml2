@@ -3,210 +3,273 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Adaptive Interactive Lessons</title>
+<title>Adaptive Lesson Deck</title>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
   :root { --bg:#2b2b29; --panel:#33332f; --line:#4a4a46; --ink:#ecebe6; --dim:#a9a79f; --faint:#7d7b74;
           --green:#8fc79a; --red:#e58a7b; --blue:#8fb3e5; --amber:#e8c36a; --violet:#d59be0; }
   * { box-sizing:border-box; }
-  html { scroll-behavior:smooth; }
-  html, body { margin:0; background:var(--bg); color:var(--ink); font-family:"EB Garamond", Georgia, serif; font-size:20px; line-height:1.5; }
-  body { background-image:radial-gradient(#353532 1px, transparent 1px); background-size:22px 22px; }
+  html, body { margin:0; height:100%; background:#1d1d1c; color:var(--ink); font-family:"EB Garamond", Georgia, serif; overflow:hidden; }
+  body { display:flex; align-items:center; justify-content:center; }
+  button { font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
   a { color:var(--amber); }
-  .mono { font-family:"JetBrains Mono", monospace; font-size:.8em; }
-  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .dim { color:var(--dim); }
+  .g { color:var(--green); } .r { color:var(--red); } .a { color:var(--amber); } .b { color:var(--blue); } .v { color:var(--violet); } .dim { color:var(--dim); }
+  .mono { font-family:"JetBrains Mono", monospace; }
 
-  nav { position:fixed; left:0; top:0; bottom:0; width:230px; padding:28px 20px; border-right:1px solid #3a3a37; background:#262624; overflow-y:auto; }
-  nav .logo { font-family:"Oswald"; font-size:14px; letter-spacing:.14em; color:var(--faint); margin-bottom:18px; }
-  nav a { display:block; color:var(--dim); text-decoration:none; font-size:17px; padding:5px 8px; border-radius:6px; }
-  nav a:hover, nav a.on { color:var(--ink); background:#30302d; }
-  nav .sub { padding-left:20px; font-size:15px; }
-  main { margin-left:230px; max-width:980px; padding:40px 48px 120px; }
+  #stage { width:1280px; height:720px; position:relative; background:var(--bg); flex:none; transform-origin:center;
+           background-image:radial-gradient(#353532 1px, transparent 1px); background-size:22px 22px; }
+  #top { position:absolute; left:40px; right:40px; top:22px; display:flex; align-items:center; gap:10px; }
+  .part { font-family:"Oswald"; font-size:12px; letter-spacing:.14em; padding:4px 10px; border-radius:6px; border:1px solid var(--line); color:var(--faint); }
+  .part.on.A { border-color:var(--green); color:var(--green); } .part.on.B { border-color:var(--blue); color:var(--blue); }
+  #count { margin-left:auto; font-family:"JetBrains Mono"; font-size:13px; color:var(--faint); }
+  #title { position:absolute; left:40px; right:40px; top:56px; font-family:"Oswald"; font-weight:600; font-size:34px; line-height:1.15; }
 
-  .kick { font-family:"Oswald"; font-size:12px; letter-spacing:.14em; color:var(--faint); }
-  h1 { font-family:"Oswald"; font-size:46px; line-height:1.1; margin:6px 0 10px; }
-  h2 { font-family:"Oswald"; font-weight:500; font-size:32px; margin:64px 0 6px; scroll-margin-top:20px; }
-  h3 { font-family:"Oswald"; font-weight:500; font-size:22px; margin:30px 0 4px; scroll-margin-top:20px; }
-  .lede { font-size:24px; color:var(--ink); }
-  .num { color:var(--amber); margin-right:10px; }
-  p { margin:8px 0 12px; }
+  #vis { position:absolute; left:40px; top:112px; width:820px; height:540px; display:flex; align-items:center; justify-content:center; }
+  #imgwrap { position:relative; max-width:820px; max-height:540px; }
+  #imgwrap img { display:block; max-width:820px; max-height:540px; border-radius:10px; border:1px solid var(--line); box-shadow:0 12px 30px #0008; }
+  .pin { position:absolute; width:30px; height:30px; margin:-15px 0 0 -15px; border-radius:50%; background:var(--amber); color:#1d1d1c; font-family:"Oswald"; font-size:16px;
+         display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 4px #e8c36a44, 0 4px 10px #0009; opacity:0; transform:scale(.6); transition:all .35s; }
+  .pin.in { opacity:1; transform:none; }
+  .pin.hot { box-shadow:0 0 0 8px #e8c36a66, 0 4px 10px #0009; }
 
-  .card { border:1px solid var(--line); border-radius:14px; background:var(--panel); padding:16px 20px; margin:14px 0; }
-  .callout { border-left:3px solid var(--amber); padding:4px 0 4px 16px; margin:14px 0; font-size:22px; }
-  table { width:100%; border-collapse:collapse; font-size:17.5px; margin:10px 0; }
+  #text { position:absolute; left:890px; right:40px; top:112px; height:540px; display:flex; flex-direction:column; }
+  #lines { font-size:23px; line-height:1.4; }
+  #lines p { margin:0 0 12px; }
+  #notes { margin-top:6px; }
+  .note { display:flex; gap:10px; margin:9px 0; font-size:19px; line-height:1.3; opacity:0; transform:translateY(6px); transition:all .35s; cursor:default; }
+  .note.in { opacity:1; transform:none; }
+  .note .n { flex:none; width:24px; height:24px; border-radius:50%; background:var(--amber); color:#1d1d1c; font-family:"Oswald"; font-size:13px; display:flex; align-items:center; justify-content:center; margin-top:2px; }
+  #actions { margin-top:auto; display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { padding:6px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px; color:var(--dim); text-decoration:none; }
+  .chip.try { border-color:var(--amber); color:var(--amber); }
+  #details { position:absolute; left:890px; right:24px; top:100px; bottom:66px; background:#262624; border:1px solid var(--amber); border-radius:12px; padding:16px 18px; font-size:17px; line-height:1.45; overflow-y:auto; display:none; z-index:5; }
+  #details.open { display:block; }
+  #details h4 { font-family:"Oswald"; font-weight:500; font-size:14px; letter-spacing:.1em; color:var(--amber); margin:0 0 8px; }
+  #details ul { margin:0; padding-left:18px; } #details li { margin:5px 0; }
+  .src { color:var(--faint); font-size:14px; }
+
+  /* html visuals */
+  .viz { width:820px; }
+  .lanes .ln { display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding:14px 0; }
+  .lanes .lh { width:210px; flex:none; font-family:"Oswald"; font-size:21px; }
+  .lanes .lh span { display:block; font-family:"EB Garamond"; font-size:16px; color:var(--dim); }
+  .it { border:1px solid var(--line); border-radius:8px; background:var(--panel); padding:7px 12px; font-size:17px; }
+  .tl { position:relative; height:250px; }
+  .tl .bar { position:absolute; left:20px; right:20px; top:110px; height:4px; background:var(--line); }
+  .tl .d { position:absolute; top:96px; width:32px; height:32px; border-radius:50%; margin-left:-16px; }
+  .tl .lab { position:absolute; top:140px; width:150px; margin-left:-75px; text-align:center; font-size:17px; line-height:1.25; }
+  .rcpt { border:1px dashed var(--amber); border-radius:10px; padding:12px 16px; font-family:"JetBrains Mono"; font-size:14px; line-height:1.6; background:#2d2b25; }
+  table { width:100%; border-collapse:collapse; font-size:17px; }
   td, th { border-bottom:1px solid #3d3d39; padding:8px 8px; text-align:left; vertical-align:top; }
   th { font-family:"Oswald"; font-weight:500; font-size:13px; letter-spacing:.08em; color:var(--faint); }
-  .demo { display:inline-flex; align-items:center; gap:6px; padding:6px 14px; border:1px solid var(--amber); border-radius:8px; text-decoration:none; font-size:16px; margin:6px 8px 6px 0; }
-  .frame { width:100%; height:620px; border:1px solid var(--line); border-radius:12px; background:#222; margin:10px 0; }
-  video { width:100%; border-radius:12px; border:1px solid var(--line); background:#111; }
-  .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-  .grid3 .card { margin:0; }
-  .grid3 b { font-family:"Oswald"; font-weight:500; font-size:19px; display:block; }
-  .wk { display:grid; grid-template-columns:110px 1fr; gap:6px 16px; font-size:18px; }
+  .big { font-size:30px; line-height:1.35; }
+  .card { border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:14px 18px; }
+  .wk { display:grid; grid-template-columns:110px 1fr; gap:8px 14px; font-size:18px; }
   .wk div:nth-child(odd) { font-family:"Oswald"; color:var(--amber); font-size:16px; padding-top:2px; }
-  .todo { border:1.5px dashed var(--amber); border-radius:12px; padding:14px 18px; color:var(--dim); }
-  ol li, ul li { margin:5px 0; }
+
+  #nav { position:absolute; left:40px; right:40px; bottom:16px; display:flex; align-items:center; gap:10px; }
+  #dots { display:flex; gap:4px; flex:1; }
+  #dots i { flex:1; height:4px; border-radius:2px; background:#444; cursor:pointer; }
+  #dots i.on { background:var(--amber); } #dots i.A { } #dots i.done { background:#7a6a3a; }
+  .nb { padding:7px 16px; border:1px solid var(--line); border-radius:8px; font-size:16px; }
+  .nb.next { border-color:var(--amber); color:var(--amber); }
 </style>
 </head>
 <body>
-<nav>
-  <div class="logo">ML2 · INTERACTIVE YOUTUBE</div>
-  <a href="#video">Video (2 min)</a>
-  <a href="#thesis">1 · Thesis</a>
-  <a href="#story">2 · Learner story</a>
-  <a href="#design">3 · Design</a>
-  <a class="sub" href="#d1">See, do, decide</a>
-  <a class="sub" href="#d2">Instant vs AI</a>
-  <a class="sub" href="#d3">What we save</a>
-  <a class="sub" href="#d4">The reward</a>
-  <a class="sub" href="#d5">Before real users</a>
-  <a href="#decisions">4 · Hard decisions</a>
-  <a href="#eval">5 · How we test it</a>
-  <a href="#plan">6 · First 6-8 weeks</a>
-  <a href="#ai">7 · AI-use note</a>
-  <a href="#demos" style="margin-top:12px">Live demos ↗</a>
-</nav>
-
-<main>
-  <div class="kick">AMBITION TAKE-HOME · ML 2 · ARCHITECT AN ADAPTIVE "INTERACTIVE YOUTUBE"</div>
-  <h1>A lesson that watches what you do, and teaches back</h1>
-  <p class="lede">One concept throughout: Ambition's own RAG lesson, <i>"What RAG adds to an LLM call"</i>.</p>
-
-  <h2 id="video">Video</h2>
-  <video controls preload="metadata" src="tour.mp4" poster=""></video>
-  <p class="dim" style="font-size:16px">The guided tour of the clickable lesson. Or try it yourself: <a href="ambition-lesson.html" target="_blank">open the lesson</a> and press ▶ Guided tour.</p>
-
-  <!-- 1 -->
-  <h2 id="thesis"><span class="num">1</span>Thesis</h2>
-  <div class="callout">Ambition already asks learners to predict, then throws the answer away. Make every touch on the lesson count as evidence, let a small model read it, let a policy pick the next screen, and judge everything by one thing: <b>a new question answered on her own, days later.</b></div>
-  <p>Today the RAG lesson shows three passages and asks "which would you send?". Passage <b>A</b> is a trap: same policy, same words, wrong dates. A learner who picks A believes <b class="a">"similar text is evidence"</b>, the exact idea the next lesson exists to fix. That pick is never recorded. I checked the browser's network log: clicking a passage sends no request to Ambition's API; only "viewed this step" is sent.</p>
-  <p>The design keeps one clear split. <b>Code</b> owns every number, every right/wrong, and every instant response. <b>Small ML models</b> read the learner and choose the next move. <b>An LLM</b> only writes Waymond's 1-2 sentences. That split is what makes it fast, correct, and trainable.</p>
-
-  <!-- 2 -->
-  <h2 id="story"><span class="num">2</span>One learner story</h2>
-  <p><b>Priya</b> opens the RAG pursuit. The lesson plays like a video, with chapters on a timeline. At the first ◆ it stops: <i>"Drag the passage you would send."</i></p>
-  <ol>
-    <li>She drags <b>A</b>. Within a second the screen puts her dates beside the question's dates: <i>before 1 June</i> vs <i>on or after 1 June</i>.</li>
-    <li>Behind the scenes the habit detector moves to <b>"similar = evidence: 80%"</b> and the policy picks <b>"contrast the dates"</b>, saving the odds it chose with.</li>
-    <li>Waymond adds one line, 1-3 seconds later. She highlights <i>"on or after 1 June"</i> as a Question and asks why A looked right.</li>
-    <li>She tries again, picks <b>B</b>, then clicks <b>Go deeper</b>. A 3D view of the whole pipeline opens; she clicks <b>Retrieve</b> and watches the lesson's own word-counting code pick the wrong passage when the question is reworded.</li>
-    <li>Three days later, one notification, one new question on a different topic. She picks the real rule, not the word trap. <b>That answer is the reward.</b></li>
-  </ol>
-  <div class="grid3">
-    <div class="card"><b>Priya · new to RAG</b>Falls for the look-alike. Gets guidance: dates side by side, then a reworded check.</div>
-    <div class="card"><b>Ravi · engineer</b>Picks B in 4 seconds. Gets less: skips the explanation, goes to a harder reworded question and the code.</div>
-    <div class="card"><b>Sam · leaves halfway</b>Quits at chapter 2. Two days later: one 60-second question, resuming exactly where he left.</div>
-  </div>
-
-  <!-- 3 -->
-  <h2 id="design"><span class="num">3</span>Design</h2>
-  <p>Each part of the brief maps to something you can click in the demo.</p>
-  <a class="demo" href="ambition-lesson.html" target="_blank">▶ The lesson</a><a class="demo" href="how-ai-learns.html" target="_blank">▶ How the AI learns</a><a class="demo" href="bootstrap.html" target="_blank">▶ Before real learners</a>
-
-  <h3 id="d1">3.1 · What the AI sees, knows, can do, and may decide</h3>
-  <table>
-    <tr><th>PART</th><th>IN PLAIN WORDS</th><th>IN THE RAG LESSON</th></tr>
-    <tr><td><b>Observations</b></td><td>what we can see her do</td><td>passage picks, highlights (Important / Question / Revisit / Connection), notes, Ask text + what it points at, play / pause / rewind / skip, 3D opens, level setting, check answers</td></tr>
-    <tr><td><b>Environment state</b></td><td>what is true right now</td><td><i>visible:</i> chapter, passages shown, what is in the request, what was revealed. <i>hidden (guessed):</i> her habit, her skill, how fast she forgets</td></tr>
-    <tr><td><b>Actions</b></td><td>the moves the system can make</td><td>contrast the dates · worked example · open a 3D part · harder (reworded) question · shuffled re-check · move on · schedule the comeback</td></tr>
-    <tr><td><b>Policy boundary</b></td><td>who decides what</td><td><b>ML:</b> which move, which question, how much help. <b>LLM:</b> the words only. <b>Code:</b> every number, right/wrong, the day-3 test. <b>Learner:</b> level, skip, "just tell me" always win</td></tr>
-  </table>
-  <p class="dim" style="font-size:17px">Demo: open <b>🧠 Model view</b> in the lesson. Its four panels are exactly these: observations, learner state, policy, reward.</p>
-
-  <h3 id="d2">3.2 · What must be instant, and what can wait</h3>
-  <table>
-    <tr><th>SPEED</th><th>WHO</th><th>EXAMPLES</th></tr>
-    <tr><td class="g"><b>Instant · under 0.1 s</b></td><td>plain code</td><td>dragging a passage, the right/wrong reveal, dates side by side, rotating and zooming 3D, editing the question and watching the scores change, highlights and notes</td></tr>
-    <tr><td class="a"><b>1-3 seconds</b></td><td>fast LLM</td><td>Waymond's reply, "explain this part", Summarize, Simpler / Deeper</td></tr>
-    <tr><td class="b"><b>Background · minutes</b></td><td>bigger models, checked by code</td><td>a new practice case aimed at her mistake, a recap of her session</td></tr>
-    <tr><td style="color:var(--violet)"><b>Days</b></td><td>scheduler</td><td>the one-question check-in</td></tr>
-  </table>
-  <p>Rule: what you touch answers from code at once. AI adds words and choices, never numbers. While the AI thinks, the screen has already reacted.</p>
-
-  <h3 id="d3">3.3 · What we save (the trajectory)</h3>
-  <p>One timeline per learner, four kinds of entries:</p>
-  <table>
-    <tr><th>KIND</th><th>EXAMPLE</th><th>WHAT IT TELLS US</th></tr>
-    <tr><td class="g">Explicit answers</td><td>picked A · check: "No, A covers before 1 June"</td><td>what she believes (strongest signal)</td></tr>
-    <tr><td class="b">Interaction traces</td><td>opened Retrieve in 3D · rewound 10 s · skipped chapter 3</td><td>where she goes deep, where she struggles or leaves</td></tr>
-    <tr><td class="a">Interjections</td><td>highlighted "after 1 June" as Question · asked "why did A look right?"</td><td>what is confusing her, pointed at the exact thing</td></tr>
-    <tr><td style="color:var(--violet)">Later evidence</td><td>day 3: new question, right, no hints</td><td>did it stick (the reward)</td></tr>
-  </table>
-  <p>Every teaching move also saves a <b>receipt</b>: what the model believed, the options it had, the odds of each, and what it chose. That receipt is what lets us test a new policy on old data later. A rewind alone means little (61% of rewind spikes in MOOC videos sit at visual transitions, Kim 2014), so signals are always read together.</p>
-
-  <h3 id="d4">3.4 · The reward</h3>
-  <div class="callout">Reward = <b>right on a new question, on her own, 2-7 days later.</b> Nothing else trains the policy.</div>
-  <ul>
-    <li><b>Never rewarded:</b> watch time, clicks, completion, answers while the lesson is still on screen. Plain AI access raised practice scores but exam scores fell when it was removed (Bastani et al., PNAS 2025).</li>
-    <li><b>Can't be gamed:</b> the day-3 question is chosen at random by a separate scheduler the policy cannot see.</li>
-    <li><b>People who don't return</b> count as missing, not as a pass. We report both "learned" and "came back".</li>
-    <li><b>Two memories:</b> her own memory (what she asked, got wrong, likes) shapes only her lessons. The shared model learns patterns across everyone.</li>
-  </ul>
-  <p>How it trains: a <b>habit detector</b> (Bayesian update), a <b>skill model</b> (logistic regression, later a transformer), a <b>memory model</b> (per-person forgetting, like Duolingo's half-life regression), and a <b>chooser</b> (rules plus Thompson sampling, later offline RL). Every night, day-3 results are attached to the moves that led to them. <a href="how-ai-learns.html" target="_blank">See it step by step ↗</a></p>
-
-  <h3 id="d5">3.5 · Before there are real learners</h3>
-  <ol>
-    <li><b>Authored environments.</b> We write one lesson as a recipe: question, right passage, look-alike trap, off-topic passage. AI writes hundreds of variants; code rejects any where the trap isn't really wrong.</li>
-    <li><b>Simulated learners.</b> Small programs with one habit each (falls for look-alikes, checks dates, skims, random, quits), plus how they react to each tutor move, plus noise and forgetting. Written as code, because AI-played students tend to quietly fix their own mistakes (Do, Sonkar, Sachan 2026). AI only writes their chat questions.</li>
-    <li><b>Offline evaluation.</b> Every new AI version must pass on the fake students: spots each habit, never leaks the answer, picks sensible moves, doesn't slow down people who already know it. Later the same checks run on saved real sessions.</li>
-    <li><b>Human studies.</b> 5 think-alouds × 3 rounds, then 60 paid learners, adaptive vs normal, with a new question 3-5 days later (the design of Google's Learn Your Way study: 78% vs 67%).</li>
-    <li><b>Fix the fakes.</b> Compare fake and real behavior; keep the fakes that match, fix the rest (how Waymo scores its simulated drivers), and repeat.</li>
-  </ol>
-  <p><a href="bootstrap.html" target="_blank">Try the five steps ↗</a></p>
-
-  <!-- 4 -->
-  <h2 id="decisions"><span class="num">4</span>Hard decisions</h2>
-  <table>
-    <tr><th>DECISION</th><th>WHY</th><th>WHAT IT COSTS</th></tr>
-    <tr><td><b>The LLM never picks the move or the numbers</b></td><td>LLMs are weaker learner models than simple ML (deep knowledge tracing beat an LLM in every setting, Hooshyar 2025), and numbers must be right</td><td>less "magic"; more authoring</td></tr>
-    <tr><td><b>Reward only on day-3 unaided answers</b></td><td>in-session gains can vanish (PNAS 2025)</td><td>few, slow labels; needs a proxy that is checked against day 3</td></tr>
-    <tr><td><b>Simple models first</b></td><td>logistic regression wins on small and medium data (Gervet 2020, 9 datasets); transformers need Riiid-scale data</td><td>lower ceiling early</td></tr>
-    <tr><td><b>One randomized decision per lesson, odds logged</b></td><td>it is the only way to know which move helped, and to test new policies on old data</td><td>some learners get the second-best move</td></tr>
-    <tr><td><b>Preferences remembered, not trusted</b></td><td>"learning styles" matching has no evidence (Pashler 2008); her stated level is always obeyed, but "visual first" only becomes a default once it improves her day-3 results</td><td>slower to feel personal</td></tr>
-    <tr><td><b>Fake students as code, not AI role-play</b></td><td>AI students drop their mistakes</td><td>less varied behavior until real data tunes them</td></tr>
-  </table>
-
-  <!-- 5 -->
-  <h2 id="eval"><span class="num">5</span>How we test it</h2>
-  <ul>
-    <li><b>Before people:</b> the offline checks above, on every change.</li>
-    <li><b>Is it usable:</b> 3 rounds of 5 think-alouds. Fix anything confusing.</li>
-    <li><b>Does it teach:</b> 60 paid learners, new to RAG, randomly split: today's lesson vs the adaptive one. Same day-3 question for both, picked at random.</li>
-    <li><b>Main measure:</b> share of people who answer the new question right, unaided, 3-5 days later.</li>
-    <li><b>Also watched:</b> time spent, how many come back, how often Waymond was wrong, whether experts felt slowed down.</li>
-    <li><b>Ship rule:</b> adaptive must beat normal on day 3, without more people quitting. Otherwise we change one thing and run again.</li>
-  </ul>
-
-  <!-- 6 -->
-  <h2 id="plan"><span class="num">6</span>The first 6-8 weeks</h2>
-  <div class="wk">
-    <div>Week 1</div><div>Instrument the RAG lesson: log passage picks, highlights, Ask, skips, rewinds. Write the lesson recipe and 4-5 habits.</div>
-    <div>Week 2</div><div>Fake students and the offline checks. Make 50 checked lesson variants.</div>
-    <div>Week 3</div><div>Think-alouds (5 people × 3 rounds). Fix the screen.</div>
-    <div>Week 4</div><div>Adaptive v1: habit detector, rules + one randomized decision with logged odds, day-3 scheduler, Waymond's short lines.</div>
-    <div>Weeks 5-6</div><div>60-person pilot, adaptive vs normal, check-ins 3-5 days later.</div>
-    <div>Week 7</div><div>Analyze. Tune the fake students against the real sessions.</div>
-    <div>Week 8</div><div>Decide: ship to a small share of learners and switch on Thompson sampling, or change one thing and rerun.</div>
-  </div>
-  <p class="dim" style="font-size:17px">Not in v1: transformer models, offline RL, generated 3D scenes. They come only after the data exists and they beat the simple version on day 3.</p>
-
-  <!-- 7 -->
-  <h2 id="ai"><span class="num">7</span>AI-use note</h2>
-  <div class="todo">To be written by me, in my own words: how I used AI on this, what I accepted, what I rejected, and the hours spent.</div>
-
-  <h2 id="demos">Live demos</h2>
-  <p>The lesson, clickable. Press <b>▶ Guided tour</b> at the top right, or open <b>🧠 Model view</b> and try it yourself.</p>
-  <iframe class="frame" src="ambition-lesson.html" title="Interactive lesson"></iframe>
-  <a class="demo" href="how-ai-learns.html" target="_blank">▶ How the AI learns</a><a class="demo" href="bootstrap.html" target="_blank">▶ Before real learners</a>
-  <p class="dim" style="font-size:15px;margin-top:20px">Mockup notes: Waymond's replies, the learner numbers and the policy odds in the demos are scripted examples, not live model output. Research figures are cited to their sources.</p>
-</main>
+<div id="stage">
+  <div id="top"><span class="part A" id="pA">A · THE IDEA</span><span class="part B" id="pB">B · UNDER THE HOOD</span><span id="count"></span></div>
+  <div id="title"></div>
+  <div id="vis"></div>
+  <div id="text"><div id="lines"></div><div id="notes"></div><div id="actions"></div></div>
+  <div id="details"></div>
+  <div id="nav"><button class="nb" id="prev">← Back</button><div id="dots"></div><button class="nb next" id="next">Next →</button></div>
+</div>
 
 <script>
-const links = [...document.querySelectorAll('nav a')];
-const io = new IntersectionObserver(es => es.forEach(e => {
-  if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
-}), { rootMargin: '-30% 0px -60% 0px' });
-document.querySelectorAll('h2[id], h3[id]').forEach(h => io.observe(h));
+const D = 'deck/';
+const LESSON = 'ambition-lesson.html', HOW = 'how-ai-learns.html', BOOT = 'bootstrap.html';
+// each slide: part, title, img or html, pins [[x%, y%, note]], lines, details, try
+const SL = [
+  { part: 'A', title: 'A lesson that watches what you do, and teaches back',
+    html: `<div class="viz"><div class="big">Ambition's RAG lesson, <i>"What RAG adds to an LLM call"</i>, rebuilt as an <b class="a">interactive video</b>:</div>
+      <ul class="big" style="font-size:24px;margin-top:16px;line-height:1.6"><li>it stops and asks you to choose</li><li>your choice shows what you think</li><li>the next screen changes for you, in seconds</li><li>we only count it as learned if you get a new question right, days later</li></ul>
+      <div class="dim" style="font-size:18px;margin-top:22px">RAG = an AI assistant first finds a passage, then answers from it. Waymond = Ambition's tutor chat.</div></div>`,
+    lines: ['Part A is the learner\'s journey. Part B is how it works underneath.', 'Use <b>Next →</b> or the arrow keys.'] },
+
+  { part: 'A', title: 'Today: the lesson asks, but doesn\'t remember', img: 'today-rag.jpg',
+    pins: [[67, 22, 'Ambition already has a clickable figure: pick a passage to send to the AI.'], [67, 66, 'It shows a scripted answer for your pick.'], [87, 88, 'Then Continue. In the browser network log, the pick sent no request to Ambition\'s API.'], [24, 55, 'Waymond (left) doesn\'t know what you picked.']],
+    lines: ['This is the real Ambition app today.'],
+    details: `<h4>WHY IT MATTERS</h4><ul><li>Passage A is a trap: same policy, same words, wrong dates.</li><li>Picking it suggests "similar text = evidence", the idea lesson 3 ("Find evidence, not just similar text") exists to fix.</li><li>Only "viewed this step" requests went to Ambition's API. I did not check third-party analytics, so I'd confirm logging with the team.</li></ul>` },
+
+  { part: 'A', title: 'New: the lesson plays like a video', img: 'a1-start.jpg',
+    pins: [[52, 18, 'The lesson runs like a video, with narration-style captions.'], [55, 92, 'Chapters on a timeline. ◆ marks the places it stops for you.'], [37, 97, 'Play, pause, rewind 10 s, speed.'], [18, 12, 'Waymond sits on the left, like today.']],
+    lines: ['Same Ambition layout. The lesson area becomes a player.'], try: LESSON },
+
+  { part: 'A', title: 'It stops and asks you to choose', img: 'a2-gate.jpg',
+    pins: [[44, 17, 'Playback stops here until you answer.'], [62, 26, 'Drag the passage you would send. Or click it.'], [62, 41, 'It lands in the real request the AI would receive.']],
+    lines: ['Guessing before seeing the answer helps learning, as long as help follows a wrong guess.'],
+    details: `<h4>RESEARCH</h4><ul><li>Short questions inside a lecture video reduced mind-wandering and raised final test scores (Szpunar et al. 2013).</li><li>Wrong predictions plus surprise help, but only with support afterwards (Brod et al.).</li></ul>`, try: LESSON },
+
+  { part: 'A', title: 'Your choice shows what you think', img: 'a3-pickA.jpg',
+    pins: [[49, 26, 'Priya picks A, the look-alike.'], [62, 51, 'The AI\'s answer says A doesn\'t cover her trip.'], [56, 59, 'Within a second: her dates next to the question\'s dates.'], [22, 27, 'Waymond adds one short line, a moment later.']],
+    lines: ['One pick says a lot. A is the "same words, wrong details" trap.'], try: LESSON },
+
+  { part: 'A', title: 'Behind the screen, the AI reads her', img: 'a4-model.jpg',
+    pins: [[90, 8, 'What she did, logged as it happens.'], [90, 53, 'What it now believes: "similar = evidence", 80%.'], [90, 73, 'What to show next, with a chance for each option.'], [90, 92, 'The reward box: filled in days later.']],
+    lines: ['This "Model view" panel is for us, not the learner. It shows the AI\'s side live.'],
+    details: `<h4>IN THE DEMO</h4><ul><li>The numbers are a simple scripted version of the models in Part B.</li><li>The demo shows the top option. The real system would pick by those chances and save a record of the choice.</li></ul>`, try: LESSON },
+
+  { part: 'A', title: 'Ask about anything you see', img: 'a6-ask.jpg',
+    pins: [[24, 43, 'She highlights "on or after 1 June" and asks why it matters.'], [22, 54, 'Waymond answers about that exact phrase.'], [17, 89, '"Looking at": Waymond knows what she is pointing at.']],
+    lines: ['Highlight any text: Important, Question, Revisit, Connection, Note, or Ask. Ambition already has these, they just don\'t feed the lesson yet.'], try: LESSON },
+
+  { part: 'A', title: 'Go inside the system, in 3D', img: 'a7-3d.jpg',
+    pins: [[52, 42, 'The whole RAG pipeline. Drag to rotate, scroll to zoom.'], [47, 20, 'Click "Retrieve" and it opens: a bar for each passage.'], [50, 68, 'The scores, from a JavaScript copy of the lesson\'s own Python retriever (it counts shared words).'], [50, 81, 'Edit the question and the scores change instantly.']],
+    lines: ['3D is used where it helps: seeing the whole system, then opening one part.'], try: LESSON },
+
+  { part: 'A', title: 'Click a part, ask about it', img: 'a8-3dpart.jpg',
+    pins: [[64, 26, '"Chunks" opens into passages A, B, C.'], [22, 26, 'Ask about this part: Waymond explains it.'], [56, 49, 'Clip it to notes, or ask for Simpler / Deeper.']],
+    lines: ['Every box can be opened, asked about, or saved.'], try: LESSON },
+
+  { part: 'A', title: 'Pick your level', img: 'a9-level.jpg',
+    pins: [[21, 8, 'Explain for: Everyday, Engineer, or Researcher.'], [56, 52, 'Same part, researcher-level answer.'], [56, 71, 'Reworded question: the word counter ties and picks A, the wrong one.']],
+    lines: ['Her stated level is always obeyed. The AI only suggests a different one if it helps her day-3 results.'], try: LESSON },
+
+  { part: 'A', title: '3 days later: one question. That\'s the reward.', img: 'a10-day3.jpg',
+    pins: [[30, 19, 'One notification, 60 seconds.'], [42, 37, 'New topic, no hints. She skips the "partners" word trap.'], [88, 91, 'Only this kind of answer trains the AI.']],
+    lines: ['Not watch time. Not clicks. Not answers while the lesson is still on screen.'],
+    details: `<h4>WHY</h4><ul><li>Plain AI access raised practice scores 48%, but exam scores fell 17% once it was taken away (Bastani et al., PNAS 2025). In-the-moment success can hide weak learning.</li><li>Only her first attempt counts. People who never come back count as missing, not as a pass.</li></ul>`, try: LESSON },
+
+  // ---------------- PART B ----------------
+  { part: 'B', title: 'What the AI sees, knows, does, and may decide', img: 'a4-model.jpg',
+    pins: [[90, 8, 'OBSERVATIONS: her picks, highlights, questions, skips, rewinds, 3D opens, level.'], [90, 53, 'STATE: visible (chapter, what\'s shown) + guessed (her habit, skill, forgetting).'], [90, 73, 'ACTIONS: dates side by side · worked example · open 3D · harder question · move on.']],
+    lines: ['<b>Policy boundary:</b> ML picks the move. The LLM only writes the words. Code owns every number and the day-3 test. Her level and "skip" always win.'], try: LESSON },
+
+  { part: 'B', title: 'What is instant, and what can wait',
+    html: `<div class="viz lanes">
+      <div class="ln"><div class="lh g">Instant<span>under 0.1 s · plain code</span></div><span class="it">drag a passage</span><span class="it">right / wrong</span><span class="it">dates side by side</span><span class="it">rotate 3D</span><span class="it">edit question → scores</span></div>
+      <div class="ln"><div class="lh a">1-3 seconds<span>fast LLM</span></div><span class="it">Waymond's reply</span><span class="it">explain this part</span><span class="it">Summarize</span><span class="it">Simpler / Deeper</span></div>
+      <div class="ln"><div class="lh b">Minutes<span>background, then checked</span></div><span class="it">a new practice case for her mistake</span><span class="it">a recap of her session</span></div>
+      <div class="ln"><div class="lh v">Days<span>scheduler</span></div><span class="it">the one-question check-in</span></div></div>`,
+    lines: ['Rule: what she touches answers from code at once. AI adds words and choices, never numbers.', 'The screen reacts first; the words follow.'] },
+
+  { part: 'B', title: 'What we save: her timeline',
+    html: `<div class="viz"><div class="tl"><div class="bar"></div>
+      ${[[8, 'var(--green)', 'picked A'], [24, 'var(--amber)', 'highlighted<br>"after 1 June"'], [40, 'var(--amber)', 'asked<br>"why A?"'], [56, 'var(--blue)', 'opened 3D'], [72, 'var(--green)', 'picked B'], [92, 'var(--violet)', '<b>day 3</b><br>right, no hints']].map(([x, c, l]) => `<div class="d" style="left:${x}%;background:${c}"></div><div class="lab" style="left:${x}%">${l}</div>`).join('')}</div>
+      <div style="font-size:18px;margin:6px 0 16px"><span class="g">●</span> answers &nbsp; <span class="b">●</span> actions &nbsp; <span class="a">●</span> questions &nbsp; <span class="v">●</span> later proof</div>
+      <div class="rcpt">receipt for each teaching move:<br>  what it believed → "similar = evidence" 80%<br>  options + chances → dates .66 · 3D .21 · hint .05 …<br>  what it chose → dates side by side</div></div>`,
+    lines: ['Four kinds of evidence on one timeline.', 'A <b>receipt</b> for every move lets us test a new AI on old sessions later.'],
+    details: `<h4>WHY SIGNALS ARE READ TOGETHER</h4><ul><li>In MOOC videos, 61% of interaction peaks (in a sample of 80 videos) lined up with visual transitions (Kim et al. 2014). A rewind alone doesn't mean confusion; a rewind plus a wrong pick is stronger.</li></ul>` },
+
+  { part: 'B', title: 'How the reward trains the AI', img: 'b1-how.jpg',
+    pins: [[38, 28, 'Habit detector: which wrong idea? (Bayesian update)'], [38, 40, 'Skill model: right on day 3? (logistic regression)'], [57, 38, 'Chooser: what to show next, with chances.'], [47, 66, 'The day-3 result trains these every night.']],
+    lines: ['One action, followed through every part. Click ▶ on the live page to watch it.'], try: HOW },
+
+  { part: 'B', title: 'It gets a little better every night', img: 'b2-howend.jpg',
+    pins: [[52, 40, '"Dates side by side": 47/70 → 48/71 right on day 3 (example numbers).'], [52, 65, 'Her day-3 answer, attached to the moves that led to it.']],
+    lines: ['Each night: attach day-3 results, retrain, test on held-out learners and fake students, and release only if more people get day 3 right.'], try: HOW },
+
+  { part: 'B', title: 'Models: start simple, grow later',
+    html: `<div class="viz"><table>
+      <tr><th>PART</th><th>START WITH</th><th>LATER, WITH LOTS OF DATA</th></tr>
+      <tr><td>Habit detector</td><td>Bayesian update over habits we write</td><td>find new habits in real mistakes</td></tr>
+      <tr><td>Skill model</td><td>logistic regression with features</td><td>sequence models (LSTM, attention, transformer) like SAINT+</td></tr>
+      <tr><td>Memory model</td><td>per-person forgetting speed</td><td>per person and per topic</td></tr>
+      <tr><td>Chooser</td><td>rules + Thompson sampling on one decision</td><td>offline RL that plans a whole lesson</td></tr>
+      <tr><td>Words</td><td>fast LLM, numbers checked by code</td><td>tuned on what worked</td></tr></table></div>`,
+    lines: ['Simple models win when data is small. Bigger ones only go live if they beat the simple version on day 3.'],
+    details: `<h4>RESEARCH BEHIND IT</h4><ul>
+      <li>Logistic regression with good features beat deep models on small/medium data; deep models won on large data (Gervet et al. 2020, 9 datasets).</li>
+      <li>Deep knowledge tracing consistently beat an LLM used as the learner model (Hooshyar et al. 2025). So the LLM only writes words.</li>
+      <li>SAINT+ (Riiid) was trained on EdNet: 784,309 students.</li>
+      <li>Personalized review beat one-size spaced review by 10% on a semester exam (Lindsey et al. 2014).</li>
+      <li>Thompson sampling chose explanations in the AXIS study, tested with 524 people (Williams et al. 2016).</li>
+      <li>Offline RL picked teaching policies that then won with real students (Zhou et al. 2019, 180 students; Mandel et al. 2014, 2,000 students).</li>
+      <li>Duolingo's Birdbrain started as a logistic-regression-style model and later moved to a neural network.</li></ul>`, try: HOW },
+
+  { part: 'B', title: 'Before real users, step 1: make lessons', img: 'b4-boot1.jpg',
+    pins: [[30, 55, 'The recipe: right passage, look-alike trap, off-topic passage.'], [62, 50, 'AI writes new versions on other topics.'], [62, 79, 'A check rejects any version where the trap isn\'t really wrong.']],
+    lines: ['We write one lesson. AI makes hundreds. Each is checked: code checks the facts (dates, amounts), a person spot-checks the wording.'],
+    details: `<h4>IN THE DEMO</h4><ul><li>These three versions and their check results are written by hand to show the idea.</li></ul>`, try: BOOT },
+
+  { part: 'B', title: 'Step 2: fake students', img: 'b5-boot2.jpg',
+    pins: [[50, 44, 'Each robot has one habit: look-alike, date checker, skimmer, random, quitter.'], [50, 64, 'Watch one play: it picks, the tutor helps, it reacts, day 3.']],
+    lines: ['Small programs, not AI role-play. AI-played students tend to quietly fix their own mistakes.'],
+    details: `<h4>RESEARCH</h4><ul><li>LLM "students" dropped their misconceptions after feedback (Do, Sonkar, Sachan 2026).</li><li>LLM-played shoppers behaved far more alike than real people (Yoon et al. 2024).</li><li>Alibaba trained a policy in a simulator built from real shopper logs; it raised revenue by more than 2% live (Virtual-Taobao).</li></ul>`, try: BOOT },
+
+  { part: 'B', title: 'Step 3: test the AI before anyone sees it', img: 'b3-sim.jpg',
+    pins: [[87, 25, '200 fake students play the lesson.'], [87, 45, 'Does the AI guess each habit? After one question vs two.'], [87, 62, 'A second, shuffled question catches skimmers; random clickers stay hard.']],
+    lines: ['Every new AI version must pass on fake students first: spots habits, never leaks the answer, picks sensible moves.', 'Passing means "not broken". It doesn\'t prove learning.'], try: LESSON },
+
+  { part: 'B', title: 'Step 4-5: real people, then fix the fakes', img: 'b7-boot5.jpg',
+    pins: [[40, 52, 'Compare fake and real behavior, row by row (example numbers).'], [78, 58, 'Fakes that don\'t match get fixed. Then repeat.']],
+    lines: ['5 people think aloud (3 rounds), then 60 paid learners: adaptive vs today\'s lesson, one new question 3-5 days later.'],
+    details: `<h4>RESEARCH</h4><ul><li>Google's Learn Your Way study (60 students) also used a 3-5 day retention test: 78% vs 67% for the AI textbook vs a standard PDF reader.</li><li>Waymo scores simulated drivers by how well they match real logged driving.</li></ul>`, try: BOOT },
+
+  { part: 'B', title: 'How we test it, and the first 8 weeks',
+    html: `<div class="viz"><div class="wk">
+      <div>Week 1</div><div>Log picks, highlights, Ask, skips, rewinds in the RAG lesson. Write the recipe and 4-5 habits.</div>
+      <div>Week 2</div><div>Fake students and the checks. 50 checked lesson versions.</div>
+      <div>Week 3</div><div>Think-alouds: 5 people × 3 rounds. Fix the screen.</div>
+      <div>Week 4</div><div>Adaptive v1: habit detector, rules + one randomized decision, day-3 scheduler.</div>
+      <div>Weeks 5-6</div><div>60-person pilot: adaptive vs today's lesson.</div>
+      <div>Week 7</div><div>Analyze. Tune fake students against real sessions.</div>
+      <div>Week 8</div><div>Decide: a bigger test, or change one thing and rerun.</div></div></div>`,
+    lines: ['Main measure: right on a new question, first try, unaided, 3-5 days later.', '60 people is a pilot: it tells us if a bigger test is worth running.'],
+    details: `<h4>ASSUMPTIONS</h4><ul><li>Ambition lessons can host interactive figures and log events.</li><li>We can recruit about 60 paid learners new to RAG.</li><li>We can send one check-in message days later.</li><li>Not in v1: transformer models, offline RL, generated 3D scenes.</li></ul>` },
+
+  { part: 'B', title: 'Hard decisions',
+    html: `<div class="viz"><table>
+      <tr><th>DECISION</th><th>WHY</th><th>COST</th></tr>
+      <tr><td>LLM never picks the move or the numbers</td><td>weaker learner model; numbers must be right</td><td>more authoring</td></tr>
+      <tr><td>Reward only on day-3 unaided answers</td><td>in-session gains can vanish</td><td>few, slow labels</td></tr>
+      <tr><td>Simple models first</td><td>they win on small data</td><td>lower ceiling early</td></tr>
+      <tr><td>One randomized decision per lesson</td><td>the only way to know which move helped</td><td>some get the second-best move</td></tr>
+      <tr><td>Preferences remembered, not trusted</td><td>"learning styles" matching has no good evidence (Pashler 2008)</td><td>slower to feel personal</td></tr>
+      <tr><td>Fake students as code</td><td>AI students drop their mistakes</td><td>less varied until tuned</td></tr></table></div>`,
+    lines: ['Each choice trades something away on purpose.'] },
+
+  { part: 'B', title: 'Try it yourself',
+    html: `<div class="viz" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <a class="card" href="${LESSON}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">The lesson ↗</b><p class="dim">Press ▶ Guided tour, or open 🧠 Model view and play.</p></a>
+      <a class="card" href="${HOW}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">How the AI learns ↗</b><p class="dim">Follow one wrong pick through every model.</p></a>
+      <a class="card" href="${BOOT}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">Before real learners ↗</b><p class="dim">Make lessons, fake students, checks.</p></a></div>
+      <p style="font-size:18px;margin-top:16px">Full write-up, with every section the brief asks for: <a href="writeup.html" target="_blank">read it here ↗</a></p>
+      <div class="card" style="margin-top:12px;border-style:dashed;border-color:var(--amber)"><b style="font-family:Oswald">AI-use note</b><p class="dim">[to be written by me: how I used AI, what I kept and rejected, hours spent]</p></div>`,
+    lines: ['Demo note: Waymond\'s replies, the learner numbers and the odds are scripted examples. The word-count scores and the fake-student runs are computed in the page.'] },
+];
+
+// ---------------- render ----------------
+const $ = s => document.querySelector(s);
+let i = 0, timers = [];
+$('#dots').innerHTML = SL.map((s, k) => `<i data-k="${k}"></i>`).join('');
+document.querySelectorAll('#dots i').forEach(d => d.onclick = () => go(+d.dataset.k));
+function go(k) {
+  i = Math.max(0, Math.min(SL.length - 1, k)); const s = SL[i];
+  timers.forEach(clearTimeout); timers = [];
+  $('#pA').classList.toggle('on', s.part === 'A'); $('#pB').classList.toggle('on', s.part === 'B');
+  $('#count').textContent = `${i + 1} / ${SL.length}`;
+  $('#title').innerHTML = s.title;
+  $('#details').classList.remove('open'); $('#details').innerHTML = s.details || '';
+  if (s.img) {
+    $('#vis').innerHTML = `<div id="imgwrap"><img src="${D}${s.img}" alt="">${(s.pins || []).map(([x, y], n) => `<div class="pin" style="left:${x}%;top:${y}%">${n + 1}</div>`).join('')}</div>`;
+  } else $('#vis').innerHTML = s.html;
+  $('#lines').innerHTML = (s.lines || []).map(l => `<p>${l}</p>`).join('');
+  $('#notes').innerHTML = (s.pins || []).map(([, , t], n) => `<div class="note" data-n="${n}"><span class="n">${n + 1}</span><span>${t}</span></div>`).join('');
+  $('#actions').innerHTML = (s.details ? `<button class="chip" id="det">＋ Details</button>` : '') + (s.try ? `<a class="chip try" href="${s.try}" target="_blank">Try it ↗</a>` : '');
+  if (s.details) $('#det').onclick = () => $('#details').classList.toggle('open');
+  // reveal pins one by one
+  const pins = [...document.querySelectorAll('.pin')], notes = [...document.querySelectorAll('.note')];
+  pins.forEach((p, n) => timers.push(setTimeout(() => { p.classList.add('in'); notes[n].classList.add('in'); }, 400 + n * 650)));
+  notes.forEach((nt, n) => { nt.onmouseenter = () => pins[n]?.classList.add('hot'); nt.onmouseleave = () => pins[n]?.classList.remove('hot'); });
+  document.querySelectorAll('#dots i').forEach((d, k) => { d.classList.toggle('on', k === i); d.classList.toggle('done', k < i); });
+  history.replaceState(null, '', '#' + (i + 1));
+}
+$('#next').onclick = () => go(i + 1); $('#prev').onclick = () => go(i - 1);
+addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === ' ') go(i + 1); if (e.key === 'ArrowLeft') go(i - 1); });
+function fit() { const s = Math.min(innerWidth / 1280, innerHeight / 720); $('#stage').style.transform = `scale(${s})`; }
+addEventListener('resize', fit); fit();
+go((+location.hash.slice(1) || 1) - 1);
 </script>
 </body>
 </html>

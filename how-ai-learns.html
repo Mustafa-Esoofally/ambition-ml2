@@ -140,14 +140,14 @@
   <div id="research" style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
     <div class="card">
       <h2>What we start with</h2>
-      <div class="dim" style="font-size:16px;margin-bottom:8px">Simple, proven models. Each one has run in production or a published trial.</div>
+      <div class="dim" style="font-size:16px;margin-bottom:8px">Simple models, each backed by published research or a production system.</div>
       <table>
         <tr><th>PART</th><th>MODEL</th><th>WHY / WHO USED IT</th></tr>
-        <tr><td>② Habit</td><td>Bayesian update over written habits</td><td>Works with no data; misconceptions as "wrong rules" (WatChat, MIT 2024)</td></tr>
-        <tr><td>③ Skill</td><td>Logistic regression + features</td><td>Beats deep models on small/medium data (Gervet 2020, 9 datasets); Duolingo Birdbrain</td></tr>
-        <tr><td>④ Memory</td><td>Half-life regression, per person</td><td>Duolingo HLR (2016); personalized review +16.5% retention (Lindsey 2014)</td></tr>
+        <tr><td>② Habit</td><td>Bayesian update over written habits</td><td>Works with no data; misconceptions as "wrong rules" (WatChat, MIT research preprint, 2024)</td></tr>
+        <tr><td>③ Skill</td><td>Logistic regression + features</td><td>Beats deep models on small/medium data (Gervet 2020, 9 datasets); Duolingo's Birdbrain started as a similar model</td></tr>
+        <tr><td>④ Memory</td><td>Half-life regression, per person</td><td>Duolingo HLR (2016); personalized review beat one-size spaced review by 10% on an exam (Lindsey 2014)</td></tr>
         <tr><td>⑤ Chooser</td><td>Rules + Thompson sampling on one decision</td><td>Thompson sampling chose explanations in the AXIS study, tested with 524 people (Williams 2016)</td></tr>
-        <tr><td>⑥ Words</td><td>Fast LLM, numbers checked by code</td><td>LLMs are weak learner models (Hooshyar 2025), so they only write words</td></tr>
+        <tr><td>⑥ Words</td><td>Fast LLM, numbers checked by code</td><td>Deep knowledge tracing consistently beat an LLM as the learner model (Hooshyar 2025), so the LLM only writes words</td></tr>
       </table>
     </div>
     <div class="card">
@@ -156,8 +156,8 @@
       <table>
         <tr><th>AREA</th><th>MODELS TO RESEARCH</th><th>NEEDS</th></tr>
         <tr><td>Reading her history</td><td>LSTM (DKT 2015) → attention (SAKT, AKT) → transformer (SAINT+, Riiid: 784k students)</td><td>millions of events</td></tr>
-        <tr><td>Rich actions</td><td>models that read figure use, not just answers (Käser 2020; multi-activity tracing, EDM 2024)</td><td>logged 3D / drag / highlight data</td></tr>
-        <tr><td>Planning a whole lesson</td><td>offline RL: IQL, CQL (Zhou 2019, 180 students; Mandel 2014, 2,000 students)</td><td>saved sessions with logged odds</td></tr>
+        <tr><td>Rich actions</td><td>models that read actions, not just answers (Käser 2020 on simulation use; Zhao &amp; Sahebi 2024 on questions + explanations)</td><td>logged 3D / drag / highlight data</td></tr>
+        <tr><td>Planning a whole lesson</td><td>offline RL picked policies that then won with students (Zhou 2019, 180 students; Mandel 2014, 2,000); newer methods: IQL, CQL</td><td>saved sessions with logged odds</td></tr>
         <tr><td>Better wording</td><td>RL-tuned tutor vs simulated students (Dinucu-Jianu 2025)</td><td>trustworthy simulators</td></tr>
         <tr><td>Better fake students</td><td>simulators trained on real sessions ("world models" for learners)</td><td>first real pilot data</td></tr>
       </table>
@@ -198,16 +198,16 @@ after:   similar=evidence 80%  skims 10%
     model: 'v1: logistic regression (a simple formula that weighs each number and gives a probability)',
     input: 'features ① + habit odds ② + days since the lesson', output: 'a probability, e.g. 0.42',
     trained: 'real day-3 answers. Each night it re-weighs the numbers.',
-    v1: 'logistic regression (works with hundreds of learners)', v3: 'transformer reading her whole history, like SAINT+ (needs millions of events)', ex: `P(right on day 3) =
-  base                     +0.20
+    v1: 'logistic regression (works with hundreds of learners)', v3: 'transformer reading her whole history, like SAINT+ (needs millions of events)', ex: `P(right on day 3), illustrative =
+  base                     +0.67
   picked look-alike        -0.35
   highlighted the dates    +0.10
   ...
   → 0.42` },
   memory: { name: '④ Memory model', plain: 'Learns how fast THIS person forgets, so we ask again at the right time.',
-    model: 'hierarchical Bayes: everyone starts at the average, then it adjusts for each person',
+    model: 'half-life regression (like Duolingo) with a shared average: everyone starts at the average, then it adjusts for each person',
     input: 'past day-2/3/6 results for her, plus everyone else', output: 'her forgetting speed → when to send the check-in',
-    trained: 'every check-in result. Evidence: personalized review +16.5% retention (Lindsey 2014).',
+    trained: 'every check-in result. Evidence: personalized review beat one-size spaced review by 10% on a semester exam (Lindsey 2014).',
     v1: 'one forgetting speed per person', v3: 'per person and per topic', ex: `new learner:  average speed  → check on day 3
 fast forgetter after 3 checks → day 2
 slow forgetter after 3 checks → day 6` },
