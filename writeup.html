@@ -63,7 +63,8 @@
   <a href="#decisions">4 · Hard decisions</a>
   <a href="#eval">5 · How we test it</a>
   <a href="#plan">6 · First 6-8 weeks</a>
-  <a href="#ai">7 · AI-use note</a>
+  <a href="#next">7 · What next</a>
+  <a href="#ai">8 · AI-use note</a>
   <a href="#demos" style="margin-top:12px">Live demos ↗</a>
 </nav>
 
@@ -192,7 +193,20 @@
   <p class="dim" style="font-size:17px">Not in v1: transformer models, offline RL, generated 3D scenes. They come only after the data exists and they beat the simple version on day 3.</p>
 
   <!-- 7 -->
-  <h2 id="ai"><span class="num">7</span>AI-use note</h2>
+  <h2 id="next"><span class="num">7</span>Where this is, and what I'd explore next</h2>
+  <p><b>Done in this take-home:</b> studied the real RAG lesson in Ambition and what it records today; researched what worked at scale (Duolingo, EdNet, Google's Learn Your Way) and picked simple models to start; built a rough clickable prototype (the lesson, how the AI learns, fake students); checked every number against its source.</p>
+  <p><b>Next, in order:</b></p>
+  <ol>
+    <li><b>Small real version</b> inside one Ambition lesson: record passage picks, asks, skips and rewinds.</li>
+    <li><b>Test before people:</b> run the fake students, then 5 think-alouds. Fix what confuses.</li>
+    <li><b>60-person pilot:</b> adaptive vs today's lesson, scored on a new question 3-5 days later.</li>
+    <li><b>Improve the algorithm with that real data:</b> fit the skill and memory models, turn on the randomized choice, tune the fake students to match real ones.</li>
+    <li><b>Only if it wins on day 3:</b> more lessons, bigger models (transformers, offline RL), generated 3D.</li>
+  </ol>
+  <p><b>What I'd ask the team:</b> which lesson events are already logged; whether we can message a learner days later; who can write and review lesson versions; whether we can recruit about 60 learners new to RAG.</p>
+
+  <!-- 8 -->
+  <h2 id="ai"><span class="num">8</span>AI-use note</h2>
   <div class="todo">To be written by me, in my own words: how I used AI on this, what I accepted, what I rejected, and the hours spent.</div>
 
   <h2 id="demos">Live demos</h2>

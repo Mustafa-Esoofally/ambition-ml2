@@ -229,6 +229,26 @@ const SL = [
       <tr><td>Fake students as code</td><td>AI students drop their mistakes</td><td>less varied until tuned</td></tr></table></div>`,
     lines: ['Each choice trades something away on purpose.'] },
 
+  { part: 'B', title: 'Where this is, and what comes next',
+    html: `<div class="viz" style="display:grid;grid-template-columns:1fr 1.25fr 1fr;gap:16px;font-size:17px">
+      <div class="card"><b style="font-family:Oswald;font-size:20px">Done in this take-home</b><ol style="padding-left:20px;margin:8px 0 0">
+        <li>Studied the real RAG lesson in Ambition and what it records today.</li>
+        <li>Researched what worked at scale (Duolingo, EdNet, Google's Learn Your Way) and picked simple models to start.</li>
+        <li>Built a rough clickable prototype: the lesson, how the AI learns, fake students.</li>
+        <li>Checked every number against its source.</li></ol></div>
+      <div class="card"><b style="font-family:Oswald;font-size:20px">Next, in order</b><ol style="padding-left:20px;margin:8px 0 0">
+        <li><b>Small real version</b> inside one Ambition lesson: record picks, asks, skips.</li>
+        <li><b>Test before people:</b> fake students, then 5 think-alouds. Fix what confuses.</li>
+        <li><b>60-person pilot:</b> adaptive vs today's lesson, new question 3-5 days later.</li>
+        <li><b>Improve the algorithm</b> with that real data: fit the skill and memory models, turn on the randomized choice, tune the fakes.</li>
+        <li><b>Only if it wins:</b> more lessons, bigger models, generated 3D.</li></ol></div>
+      <div class="card"><b style="font-family:Oswald;font-size:20px">What I'd ask the team</b><ul style="padding-left:20px;margin:8px 0 0">
+        <li>Which lesson events are already logged?</li>
+        <li>Can we message a learner days later?</li>
+        <li>Who can write and review lesson versions?</li>
+        <li>Can we recruit about 60 learners new to RAG?</li></ul></div></div>`,
+    lines: ['The brief asks what I would explore next. The answer: a small real version first, then let real day-3 results improve the algorithm.'] },
+
   { part: 'B', title: 'Try it yourself',
     html: `<div class="viz" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
       <a class="card" href="${LESSON}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">The lesson ↗</b><p class="dim">Press ▶ Guided tour, or open 🧠 Model view and play.</p></a>
