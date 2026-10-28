@@ -197,17 +197,18 @@
   <p><b>Done in this take-home:</b> studied the real RAG lesson in Ambition and what it records today; researched what worked at scale (Duolingo, EdNet, Google's Learn Your Way) and picked simple models to start; built a rough clickable prototype (the lesson, how the AI learns, fake students); checked every number against its source.</p>
   <p><b>Next, in order:</b></p>
   <ol>
-    <li><b>Small real version</b> inside one Ambition lesson: record passage picks, asks, skips and rewinds.</li>
-    <li><b>Test before people:</b> run the fake students, then 5 think-alouds. Fix what confuses.</li>
-    <li><b>60-person pilot:</b> adaptive vs today's lesson, scored on a new question 3-5 days later.</li>
-    <li><b>Improve the algorithm with that real data:</b> fit the skill and memory models, turn on the randomized choice, tune the fake students to match real ones.</li>
-    <li><b>Only if it wins on day 3:</b> more lessons, bigger models (transformers, offline RL), generated 3D.</li>
+    <li><b>Write the fake students in code</b> (habits, reactions, noise, forgetting) and generate thousands of synthetic sessions.</li>
+    <li><b>Train the first models on that data:</b> habit detector, skill model, memory model. Check they recover the habits we planted.</li>
+    <li><b>Test the chooser offline</b> against fixed rules, using the logged odds, before any real learner sees it.</li>
+    <li><b>Then real people:</b> a small real version in one Ambition lesson, 5 think-alouds, then the 60-person pilot.</li>
+    <li><b>Retrain on real day-3 results</b> and tune the fake students to match real ones. Bigger models (transformers, offline RL) only if they beat the simple ones.</li>
   </ol>
+  <p>In short: with more time I would go technical, on the ML models, the code and the synthetic data. Real learners come after the models work on fake ones.</p>
   <p><b>What I'd ask the team:</b> which lesson events are already logged; whether we can message a learner days later; who can write and review lesson versions; whether we can recruit about 60 learners new to RAG.</p>
 
   <!-- 8 -->
   <h2 id="ai"><span class="num">8</span>AI-use note</h2>
-  <div class="todo">To be written by me, in my own words: how I used AI on this, what I accepted, what I rejected, and the hours spent.</div>
+  <p>I used Claude Code as the driver: it did the research (papers, products, the Ambition app) and built the visuals and demos. My time went into understanding and playing through each piece, and pushing back when something was unclear or wrong. Two AI reviewers fact-checked every claim; I kept the fixes that matched the sources. I rejected versions that were too abstract (a graph-network example, an embeddings-heavy one). The concept, the day-3 reward, simple models first, and what to show were my calls. Time spent: [X] hours.</p>
 
   <h2 id="demos">Live demos</h2>
   <p>The lesson, clickable. Press <b>▶ Guided tour</b> at the top right, or open <b>🧠 Model view</b> and try it yourself.</p>

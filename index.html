@@ -237,25 +237,25 @@ const SL = [
         <li>Built a rough clickable prototype: the lesson, how the AI learns, fake students.</li>
         <li>Checked every number against its source.</li></ol></div>
       <div class="card"><b style="font-family:Oswald;font-size:20px">Next, in order</b><ol style="padding-left:20px;margin:8px 0 0">
-        <li><b>Small real version</b> inside one Ambition lesson: record picks, asks, skips.</li>
-        <li><b>Test before people:</b> fake students, then 5 think-alouds. Fix what confuses.</li>
-        <li><b>60-person pilot:</b> adaptive vs today's lesson, new question 3-5 days later.</li>
-        <li><b>Improve the algorithm</b> with that real data: fit the skill and memory models, turn on the randomized choice, tune the fakes.</li>
-        <li><b>Only if it wins:</b> more lessons, bigger models, generated 3D.</li></ol></div>
+        <li><b>Write the fake students in code</b> and generate thousands of synthetic sessions.</li>
+        <li><b>Train the first models</b> on that data (habit, skill, memory). Check they find the habits we planted.</li>
+        <li><b>Test the chooser offline</b> against fixed rules before anyone sees it.</li>
+        <li><b>Then real people:</b> one real lesson, 5 think-alouds, a 60-person pilot.</li>
+        <li><b>Retrain on real day-3 results</b> and tune the fakes to match.</li></ol></div>
       <div class="card"><b style="font-family:Oswald;font-size:20px">What I'd ask the team</b><ul style="padding-left:20px;margin:8px 0 0">
         <li>Which lesson events are already logged?</li>
         <li>Can we message a learner days later?</li>
         <li>Who can write and review lesson versions?</li>
         <li>Can we recruit about 60 learners new to RAG?</li></ul></div></div>`,
-    lines: ['The brief asks what I would explore next. The answer: a small real version first, then let real day-3 results improve the algorithm.'] },
+    lines: ['With more time I would go technical: the ML models, the code and the synthetic data. Real learners come after the models work on fake ones.'] },
 
   { part: 'B', title: 'Try it yourself',
-    html: `<div class="viz" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+    html: `<div class="viz"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
       <a class="card" href="${LESSON}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">The lesson ↗</b><p class="dim">Press ▶ Guided tour, or open 🧠 Model view and play.</p></a>
       <a class="card" href="${HOW}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">How the AI learns ↗</b><p class="dim">Follow one wrong pick through every model.</p></a>
       <a class="card" href="${BOOT}" target="_blank" style="text-decoration:none;color:inherit"><b style="font-family:Oswald;font-size:22px">Before real learners ↗</b><p class="dim">Make lessons, fake students, checks.</p></a></div>
       <p style="font-size:18px;margin-top:16px">Full write-up, with every section the brief asks for: <a href="writeup.html" target="_blank">read it here ↗</a></p>
-      <div class="card" style="margin-top:12px;border-style:dashed;border-color:var(--amber)"><b style="font-family:Oswald">AI-use note</b><p class="dim">[to be written by me: how I used AI, what I kept and rejected, hours spent]</p></div>`,
+      <div class="card" style="margin-top:12px;border-style:dashed;border-color:var(--amber)"><b style="font-family:Oswald">AI-use note</b><p class="dim" style="font-size:15px">I used Claude Code as the driver: it did the research (papers, products, the Ambition app) and built the visuals and demos. My time went into understanding and playing through each piece, and pushing back when something was unclear or wrong. Two AI reviewers fact-checked every claim; I kept the fixes that matched the sources. I rejected versions that were too abstract (a graph-network example, an embeddings-heavy one). The concept, the day-3 reward, simple models first, and what to show were my calls. Time spent: [X] hours.</p></div></div>`,
     lines: ['Demo note: Waymond\'s replies, the learner numbers and the odds are scripted examples. The word-count scores and the fake-student runs are computed in the page.'] },
 ];
 
